@@ -12,7 +12,9 @@ on:
         required: true
         default: false
         type: boolean
-        
+env:
+  file-path: ./Packages/SimplePackage/package.json
+
 jobs:
   validate:
     uses: Cysharp/Actions/.github/workflows/validate-tag.yaml@main
@@ -45,7 +47,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-          
+
       # package.json
       # "version": 1.2.3 -> "version": 2.0.0
       # plugin.cfg
