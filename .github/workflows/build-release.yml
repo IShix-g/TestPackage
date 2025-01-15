@@ -48,6 +48,10 @@ jobs:
       branch-name: ${{ steps.configure.outputs.branch-name }}
       is-branch-created: ${{ steps.commit.outputs.is-branch-created }}
     steps:
+      - name: Checkout Repository with Overridden Token
+        uses: actions/checkout@v4
+        with:
+          token: ${{ needs.generate-token.outputs.token }}
       - name: Configure Output variables
         id: configure
         run: |
