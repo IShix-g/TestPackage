@@ -33,6 +33,7 @@ jobs:
           persist-credentials: false
 
   update-packagejson:
+    needs: [generate-token]
     permissions:
       actions: read
       contents: write
