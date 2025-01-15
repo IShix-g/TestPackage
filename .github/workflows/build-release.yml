@@ -19,6 +19,11 @@ jobs:
     permissions:
       actions: read
       contents: write
+    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+    with:
+      file-path: ./Packages/SimplePackage/package.json
+      tag: ${{ inputs.tag }}
+      dry-run: ${{ inputs.dry-run }}
     steps:
       - name: Generate Token
         id: app-token
@@ -29,10 +34,3 @@ jobs:
 
       - name: Set GITHUB_TOKEN
         run: echo "GITHUB_TOKEN=${{ steps.app-token.outputs.token }}" >> $GITHUB_ENV
-
-      - name: Update package.json
-        uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
-        with:
-          file-path: ./Packages/SimplePackage/package.json
-          tag: ${{ inputs.tag }}
-          dry-run: ${{ inputs.dry-run }}
