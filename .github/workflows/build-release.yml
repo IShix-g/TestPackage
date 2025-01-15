@@ -99,7 +99,7 @@ jobs:
                 echo "Success. Path: $file_path, Expected: $expected, Actual: $actual"
               fi
             echo "::endgroup::"
-          done <<< "${{ inputs.file-path }}"
+          done <<< "${{ env.file-path }}"
 
       - name: Check update on git
         id: check_update
