@@ -48,12 +48,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # package.json
-      # "version": 1.2.3 -> "version": 2.0.0
-      # plugin.cfg
-      # version="1.2.3" -> version="2.0.0"
-      #
-      # TIPS: `grep -v "^$"` is used to remove empty line.
       - name: Update files to version ${{ needs.validate.outputs.normalized_tag }}
         run: |
           expected="${{ needs.validate.outputs.normalized_tag }}"
@@ -72,15 +66,6 @@ jobs:
                 # Unity `"version": "VersionString",`
                 sed -i -e "s/\(\"version\":\) \"\(.*\)\",/\1 \"${{ needs.validate.outputs.normalized_tag }}\",/" "${file_path}"
                 actual=$(grep "version" "$file_path" | cut -d ':' -f 2 | tr -d ',' | tr -d '"' | tr -d ' ')
-              elif [[ "${file_name}" == "plugin.cfg" ]]; then
-                # Godot `version="VersionString"`
-                sed -i -e "s/\(version=\)\"\(.*\)\"/\1\"${{ needs.validate.outputs.normalized_tag }}\"/" "${file_path}"
-                actual=$(grep "version=" "$file_path" | cut -d '=' -f 2 | tr -d '"')
-              elif [[ "${file_name}" == "Directory.Build.props" ]]; then
-                # .NET `<VersionPrefix>VersionString</VersionPrefix>`
-                sed -i -e 's|<VersionPrefix>.*</VersionPrefix>|<VersionPrefix>${{ needs.validate.outputs.normalized_tag }}</VersionPrefix>|g' "${file_path}"
-                # -P is for perl regex, only available in GNU grep
-                actual=$(grep -oP '<VersionPrefix>\K.*(?=</VersionPrefix>)' "$file_path")
               else
                 echo "Unknown file name ${file_name} is specified."
                 exit 1
