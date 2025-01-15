@@ -32,7 +32,7 @@ jobs:
       contents: write
     uses: IShix-g/TestPackage/.github/workflows/update-packagejson.yaml@main
     secrets:
-      GITHUB_TOKEN: ${{ needs.generate-token.outputs.token }}
+      CUSTOM_GITHUB_TOKEN: ${{ needs.generate-token.outputs.token }}
     with:
       file-path: ./Packages/SimplePackage/package.json
       tag: ${{ inputs.tag }}
