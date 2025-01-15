@@ -12,7 +12,7 @@ on:
         required: true
         default: false
         type: boolean
-
+        
 jobs:
   validate:
     uses: Cysharp/Actions/.github/workflows/validate-tag.yaml@main
@@ -35,11 +35,7 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-      - name: Checkout Repository with Overridden Token
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
+
       - name: Configure Output variables
         id: configure
         run: |
@@ -48,7 +44,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
-
+          fetch-depth: 0
+          persist-credentials: false
+          
       # package.json
       # "version": 1.2.3 -> "version": 2.0.0
       # plugin.cfg
