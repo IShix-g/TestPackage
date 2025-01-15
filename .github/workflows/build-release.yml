@@ -8,22 +8,16 @@ on:
         required: true
         type: string
       dry-run:
-        description: "dry-run: true will never create relase/nuget."
+        description: "dry-run: true will never create release/nuget."
         required: true
         default: false
         type: boolean
 
 jobs:
-  update-packagejson:
+  generate-token:
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: write
-    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
-    with:
-      file-path: ./Packages/SimplePackage/package.json
-      tag: ${{ inputs.tag }}
-      dry-run: ${{ inputs.dry-run }}
+    outputs:
+      token: ${{ steps.app-token.outputs.token }}
     steps:
       - name: Generate Token
         id: app-token
@@ -34,3 +28,15 @@ jobs:
 
       - name: Set GITHUB_TOKEN
         run: echo "GITHUB_TOKEN=${{ steps.app-token.outputs.token }}" >> $GITHUB_ENV
+
+  update-packagejson:
+    needs: generate-token
+    permissions:
+      actions: read
+      contents: write
+    runs-on: ubuntu-latest
+    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+    with:
+      file-path: ./Packages/SimplePackage/package.json
+      tag: ${{ inputs.tag }}
+      dry-run: ${{ inputs.dry-run }}
