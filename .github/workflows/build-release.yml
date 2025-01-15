@@ -15,11 +15,24 @@ on:
 
 jobs:
   update-packagejson:
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: write
-    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
-    with:
-      file-path: ./Packages/SimplePackage/package.json
-      tag: ${{ inputs.tag }}
-      dry-run: ${{ inputs.dry-run }}
+    steps:
+      - name: Generate Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Set GITHUB_TOKEN
+        run: echo "GITHUB_TOKEN=${{ steps.app-token.outputs.token }}" >> $GITHUB_ENV
+
+      - name: Update package.json
+        uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+        with:
+          file-path: ./Packages/SimplePackage/package.json
+          tag: ${{ inputs.tag }}
+          dry-run: ${{ inputs.dry-run }}
