@@ -33,6 +33,7 @@ jobs:
           persist-credentials: false
 
   validate:
+    needs: [generate-token]
     uses: Cysharp/Actions/.github/workflows/validate-tag.yaml@main
     with:
       tag: ${{ inputs.tag }}
