@@ -26,17 +26,19 @@ jobs:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
 
-      - name: Set GITHUB_TOKEN
-        run: echo "GITHUB_TOKEN=${{ steps.app-token.outputs.token }}" >> $GITHUB_ENV
-
   update-packagejson:
     needs: generate-token
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: write
-    runs-on: ubuntu-latest
-    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
-    with:
-      file-path: ./Packages/SimplePackage/package.json
-      tag: ${{ inputs.tag }}
-      dry-run: ${{ inputs.dry-run }}
+    steps:
+      - name: Set GITHUB_TOKEN
+        run: echo "GITHUB_TOKEN=${{ needs.generate-token.outputs.token }}" >> $GITHUB_ENV
+
+      - name: Call reusable workflow
+        uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+        with:
+          file-path: ./Packages/SimplePackage/package.json
+          tag: ${{ inputs.tag }}
+          dry-run: ${{ inputs.dry-run }}
