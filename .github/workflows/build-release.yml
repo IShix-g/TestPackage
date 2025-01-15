@@ -45,8 +45,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          persist-credentials: false
+          ref: ${{ inputs.ref }}
 
       - name: Update files to version ${{ needs.validate.outputs.normalized_tag }}
         run: |
