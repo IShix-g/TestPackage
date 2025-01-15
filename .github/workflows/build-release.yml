@@ -14,26 +14,7 @@ on:
         type: boolean
 
 jobs:
-  generate-token:
-    runs-on: ubuntu-latest
-    outputs:
-      token: ${{ steps.app-token.outputs.token }}
-    steps:
-      - name: Generate Token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
   validate:
-    needs: [generate-token]
     uses: Cysharp/Actions/.github/workflows/validate-tag.yaml@main
     with:
       tag: ${{ inputs.tag }}
@@ -48,6 +29,12 @@ jobs:
       branch-name: ${{ steps.configure.outputs.branch-name }}
       is-branch-created: ${{ steps.commit.outputs.is-branch-created }}
     steps:
+      - name: Generate Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
       - name: Checkout Repository with Overridden Token
         uses: actions/checkout@v4
         with:
@@ -140,7 +127,7 @@ jobs:
         if: ${{ steps.check_update.outputs.changed == '1' }}
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ needs.generate-token.outputs.token }}
+          github_token: ${{ steps.app-token.outputs.token }}
           branch: ${{ inputs.ref }}
           tags: false
           force: ${{ inputs.dry-run }}
