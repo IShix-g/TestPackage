@@ -27,6 +27,7 @@ jobs:
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
 
   update-packagejson:
+    needs: [generate-token]
     permissions:
       actions: read
       contents: write
