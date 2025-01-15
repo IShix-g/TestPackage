@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       dry-run:
-        description: "dry-run: true will never create release/nuget."
+        description: "dry-run: true will never create relase/nuget."
         required: true
         default: false
         type: boolean
@@ -27,11 +27,11 @@ jobs:
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
 
   update-packagejson:
-    needs: generate-token
+    permissions:
+      actions: read
+      contents: write
     uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
     with:
       file-path: ./Packages/SimplePackage/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
-    secrets:
-      GITHUB_TOKEN: ${{ needs.generate-token.outputs.token }}
