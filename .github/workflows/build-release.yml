@@ -28,10 +28,17 @@ jobs:
 
   update-packagejson:
     needs: generate-token
-    uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
-    with:
-      file-path: ./Packages/SimplePackage/package.json
-      tag: ${{ inputs.tag }}
-      dry-run: ${{ inputs.dry-run }}
-    secrets:
-      GITHUB_TOKEN: ${{ needs.generate-token.outputs.token }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Set GITHUB_TOKEN
+        run: echo "GITHUB_TOKEN=${{ needs.generate-token.outputs.token }}" >> $GITHUB_ENV
+
+      - name: Call reusable workflow
+        uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
+        with:
+          file-path: ./Packages/SimplePackage/package.json
+          tag: ${{ inputs.tag }}
+          dry-run: ${{ inputs.dry-run }}
