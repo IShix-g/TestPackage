@@ -14,26 +14,14 @@ on:
         type: boolean
 
 jobs:
-  generate-token:
-    runs-on: ubuntu-latest
-    outputs:
-      token: ${{ steps.create-token.outputs.token }}
-    steps:
-      - name: Create GitHub App Token
-        id: create-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.BOT_APP_ID }}
-          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-
   update-packagejson:
-    needs: [generate-token]
     permissions:
       actions: read
       contents: write
     uses: IShix-g/TestPackage/.github/workflows/update-packagejson.yaml@main
     secrets:
-      CUSTOM_GITHUB_TOKEN: ${{ needs.generate-token.outputs.token }}
+      BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
     with:
       file-path: ./Packages/SimplePackage/package.json
       tag: ${{ inputs.tag }}
