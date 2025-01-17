@@ -3,24 +3,34 @@ name: Reusable Release Notes Generator
 on:
   workflow_dispatch:
     inputs:
-      from_tag:
+      from-tag:
         description: '開始タグ (指定しない場合は最初のコミットから)'
         required: false
         type: string
-      to_tag:
+      to-tag:
         description: '終了タグ (指定しない場合は最後のコミットまで)'
         required: false
         type: string
+      commit-message-format:
+        description: 'コミットメッセージのフォーマット'
+        required: false
+        type: string
+        default: '- %s (%h)'
   workflow_call:
     inputs:
-      from_tag:
+      from-tag:
         description: '開始タグ (指定しない場合は最初のコミットから)'
         required: false
         type: string
-      to_tag:
+      to-tag:
         description: '終了タグ (指定しない場合は最後のコミットまで)'
         required: false
         type: string
+      commit-message-format:
+        description: 'コミットメッセージのフォーマット'
+        required: false
+        type: string
+        default: '- %s (%h)'
     outputs:
       notes:
         description: '生成されたリリースノート'
@@ -32,7 +42,7 @@ jobs:
     outputs:
       notes: ${{ steps.release-notes.outputs.notes }}
     env:
-      FILTER_CONDITION: "fix|feat"  # フィルタ条件を環境変数として設定
+      FILTER_CONDITION: "fix|feat"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,20 +55,20 @@ jobs:
         run: |
           echo "指定されたタグを確認しています..."
           # 開始タグが空の場合、最初のコミットのハッシュを取得
-          if [ -z "${{ inputs.from_tag }}" ]; then
+          if [ -z "${{ inputs.from-tag }}" ]; then
             from_commit=$(git rev-list --max-parents=0 HEAD)  # 最初のコミットを取得
             echo "開始タグが未指定のため、最初のコミット (${from_commit}) を開始点として使用します。"
           else
-            from_commit="${{ inputs.from_tag }}"
+            from_commit="${{ inputs.from-tag }}"
             echo "指定された開始タグ: ${from_commit}"
           fi
           
           # 終了タグが空の場合、HEADに置き換え
-          if [ -z "${{ inputs.to_tag }}" ]; then
+          if [ -z "${{ inputs.to-tag }}" ]; then
             to_commit="HEAD"
             echo "終了タグが未指定のため、HEAD (${to_commit}) を終了点として使用します。"
           else
-            to_commit="${{ inputs.to_tag }}"
+            to_commit="${{ inputs.to-tag }}"
             echo "指定された終了タグ: ${to_commit}"
           fi
           
@@ -73,13 +83,10 @@ jobs:
           echo "開始: ${{ steps.determine-range.outputs.from_commit }}"
           echo "終了: ${{ steps.determine-range.outputs.to_commit }}"
           echo "フィルタ条件: $FILTER_CONDITION"
-          
-          # タグ間のコミットメッセージをフィルタリングして取得
-          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --oneline | grep -iE "$FILTER_CONDITION" || echo "一致するコミットがありません")
-          
+
+          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" || echo "一致するコミットがありません")
+
           echo "::group::Filtered Notebook Contents"
           echo "$notes"
           echo "::endgroup::"
-          
-          # GitHub Actionsの出力に設定
           echo "::set-output name=notes::$notes"
