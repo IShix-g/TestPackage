@@ -60,7 +60,7 @@ jobs:
             echo "Start tag is not specified. Using the first commit ($from_commit) as the start point."
           else
             from_commit=$(git rev-list -n 1 "${{ inputs.from-tag }}")
-            echo "Specified start tag: $from_commit"
+            echo "Specified start tag: ${{ inputs.from-tag }} ($from_commit)"
           fi
 
           if [ -z "${{ inputs.to-tag }}" ]; then
@@ -68,7 +68,7 @@ jobs:
             echo "End tag is not specified. Using HEAD ($to_commit) as the end point."
           else
             to_commit=$(git rev-list -n 1 "${{ inputs.to-tag }}")
-            echo "Specified end tag: $to_commit"
+            echo "Specified end tag: ${{ inputs.to-tag }} ($to_commit)"
           fi
 
           echo "from_commit=$from_commit" >> $GITHUB_ENV
