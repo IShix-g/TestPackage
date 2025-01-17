@@ -88,4 +88,8 @@ jobs:
           echo "$notes"
           echo "::endgroup::"
           
-          echo "notes=$notes" >> "$GITHUB_OUTPUT"
+          {
+            echo "notes<<EOF"
+            echo "$notes"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
