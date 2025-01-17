@@ -64,7 +64,7 @@ jobs:
           fi
 
           if [ -z "${{ inputs.to-tag }}" ]; then
-            to_commit="HEAD"
+            to_commit=$(git rev-parse HEAD)
             echo "End tag is not specified. Using HEAD ($to_commit) as the end point."
           else
             to_commit="${{ inputs.to-tag }}"
