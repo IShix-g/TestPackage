@@ -1,0 +1,98 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit-id:
+        description: "commit-id: CommitId to create release & tag."
+        required: false
+        type: string
+      dry-run:
+        description: "dry-run: true = no upload. false = dry run changes && delete release after 60s."
+        required: true
+        type: boolean
+      require-validation:
+        description: "require-validation: true require validation must pass, false to keep going even validation failed."
+        required: false
+        type: boolean
+        default: true
+      tag:
+        description: "tag: Git tag to create. (sample 1.0.0)"
+        required: true
+        type: string
+      # release
+      release-format: # see: https://docs.github.com/en/actions/learn-github-actions/expressions#format
+        description: "release-format: if 'Ver.{0}' is specified, the release title will be 'Ver.1.0.0'. set '{0}' if no prefix is preferred."
+        required: false
+        type: string
+        default: 'Ver.{0}'
+  workflow_call:
+    inputs:
+      commit-id:
+        description: "CommitId to create release & tag."
+        required: true
+        type: string
+      dry-run:
+        description: "true = no upload. false = dry run changes && delete release after 60s."
+        required: true
+        type: boolean
+      require-validation:
+        description: "true require validation must pass, false to keep going even validation failed."
+        required: false
+        type: boolean
+        default: true
+      tag:
+        description: "Git tag to create. (sample 1.0.0)"
+        required: true
+        type: string
+      # release
+      release-format: # see: https://docs.github.com/en/actions/learn-github-actions/expressions#format
+        description: "Release format. (if 'Ver.{0}' is specified, the release title will be 'Ver.1.0.0'. set '{0}' if no prefix is preferred.)"
+        required: false
+        type: string
+        default: 'Ver.{0}'
+
+jobs:
+  validate:
+    uses: Cysharp/Actions/.github/workflows/validate-tag.yaml@main
+    with:
+      tag: ${{ inputs.tag }}
+      require-validation: ${{ inputs.require-validation }}
+    secrets: inherit
+
+  create-release:
+    needs: [validate]
+    name: Create Release
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Create Releases
+      - name: Create Tag
+        run: |
+          git tag ${{ inputs.tag }}
+          git push origin ${{ inputs.tag }}
+      - name: Create Release
+        run: gh release create ${{ inputs.tag }} --draft --verify-tag --title "${{ format(inputs.release-format, inputs.tag) }}" --generate-notes
+      - name: Wait and Verify Release Name is expected
+        run: |
+          sleep 5s
+          actual=$(gh api --paginate /repos/${{ github.repository }}/releases?per_page=100 --jq '.[] | select(.tag_name == "${{ inputs.tag }}") | .name')
+          expected="${{ format(inputs.release-format, inputs.tag) }}"
+          if [[ "$actual" != "$expected" ]]; then
+            echo "Release name is not as expected. expected: $expected, actual: $actual"
+            exit 1
+          else
+            echo "Release name is expected! expected: $expected, actual: $actual"
+          fi
+
+      # Clean up
+      - name: Clean up. Wait 60s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
+        if: ${{ inputs.dry-run || failure() }}
+        run: |
+          if gh release list | grep Draft | grep ${{ inputs.tag }}; then
+            sleep 60
+            gh release delete ${{ inputs.tag }} --yes --cleanup-tag
+          fi
