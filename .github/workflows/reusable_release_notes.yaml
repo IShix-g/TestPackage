@@ -82,7 +82,7 @@ jobs:
           echo "End: ${{ env.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
-          notes=$(git log ${{ env.from_commit }}..${{ env.to_commit }} --oneline | grep -iE "$FILTER_CONDITION" || echo "No matching commits found.")
+          notes=$(git log ${{ env.from_commit }}..${{ env.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" || echo "No matching commits found.")
 
           echo "::group::Notebook Contents"
           echo "$notes"
