@@ -1,31 +1,6 @@
 name: Create Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      commit-id:
-        description: "commit-id: CommitId to create release & tag."
-        required: false
-        type: string
-      dry-run:
-        description: "dry-run: true = no upload. false = dry run changes && delete release after 60s."
-        required: true
-        type: boolean
-      require-validation:
-        description: "require-validation: true require validation must pass, false to keep going even validation failed."
-        required: false
-        type: boolean
-        default: true
-      tag:
-        description: "tag: Git tag to create. (sample 1.0.0)"
-        required: true
-        type: string
-      # release
-      release-format: # see: https://docs.github.com/en/actions/learn-github-actions/expressions#format
-        description: "release-format: if 'Ver.{0}' is specified, the release title will be 'Ver.1.0.0'. set '{0}' if no prefix is preferred."
-        required: false
-        type: string
-        default: 'Ver.{0}'
   workflow_call:
     inputs:
       commit-id:
