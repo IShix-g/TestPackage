@@ -59,7 +59,7 @@ jobs:
             from_commit=$(git rev-list --max-parents=0 HEAD)  # Fetch the first commit
             echo "Start tag is not specified. Using the first commit ($from_commit) as the start point."
           else
-            from_commit="${{ inputs.from-tag }}"
+            from_commit=$(git rev-list -n 1 "${{ inputs.from-tag }}")
             echo "Specified start tag: $from_commit"
           fi
 
@@ -67,7 +67,7 @@ jobs:
             to_commit=$(git rev-parse HEAD)
             echo "End tag is not specified. Using HEAD ($to_commit) as the end point."
           else
-            to_commit="${{ inputs.to-tag }}"
+            to_commit=$(git rev-list -n 1 "${{ inputs.to-tag }}")
             echo "Specified end tag: $to_commit"
           fi
 
