@@ -4,36 +4,36 @@ on:
   workflow_dispatch:
     inputs:
       from-tag:
-        description: '開始タグ (指定しない場合は最初のコミットから)'
+        description: 'Start tag (if not specified, the first commit is used) (sample 1.0.0)'
         required: false
         type: string
       to-tag:
-        description: '終了タグ (指定しない場合は最後のコミットまで)'
+        description: 'End tag (if not specified, the latest commit is used) (sample 1.0.0)'
         required: false
         type: string
       commit-message-format:
-        description: 'コミットメッセージのフォーマット https://git-scm.com/docs/pretty-formats'
+        description: 'Commit message format. See https://git-scm.com/docs/pretty-formats'
         required: false
         type: string
         default: "- %s by %cn (%h)"
   workflow_call:
     inputs:
       from-tag:
-        description: '開始タグ (指定しない場合は最初のコミットから)'
+        description: 'Start tag (if not specified, the first commit is used)'
         required: false
         type: string
       to-tag:
-        description: '終了タグ (指定しない場合は最後のコミットまで)'
+        description: 'End tag (if not specified, the latest commit is used)'
         required: false
         type: string
       commit-message-format:
-        description: 'コミットメッセージのフォーマット https://git-scm.com/docs/pretty-formats'
+        description: 'Commit message format. See https://git-scm.com/docs/pretty-formats'
         required: false
         type: string
         default: "- %s by %cn (%h)"
     outputs:
       notes:
-        description: '生成されたリリースノート'
+        description: 'Generated release notes'
         value: ${{ jobs.generate-notes.outputs.notes }}
 
 jobs:
@@ -53,22 +53,22 @@ jobs:
       - name: Determine range
         id: determine-range
         run: |
-          echo "指定されたタグを確認しています..."
-          # 開始タグが空の場合、最初のコミットのハッシュを取得
+          echo "Checking the specified tags..."
+          # If the start tag is empty, fetch the hash of the first commit
           if [ -z "${{ inputs.from-tag }}" ]; then
-            from_commit=$(git rev-list --max-parents=0 HEAD)  # 最初のコミットを取得
-            echo "開始タグが未指定のため、最初のコミット (${from_commit}) を開始点として使用します。"
+            from_commit=$(git rev-list --max-parents=0 HEAD)  # Fetch the first commit
+            echo "Start tag is not specified. Using the first commit (${from_commit}) as the start point."
           else
             from_commit="${{ inputs.from-tag }}"
-            echo "指定された開始タグ: ${from_commit}"
+            echo "Specified start tag: ${from_commit}"
           fi
           
           if [ -z "${{ inputs.to-tag }}" ]; then
             to_commit="HEAD"
-            echo "終了タグが未指定のため、HEAD (${to_commit}) を終了点として使用します。"
+            echo "End tag is not specified. Using HEAD (${to_commit}) as the end point."
           else
             to_commit="${{ inputs.to-tag }}"
-            echo "指定された終了タグ: ${to_commit}"
+            echo "Specified end tag: ${to_commit}"
           fi
           
           echo "::set-output name=from_commit::$from_commit"
@@ -77,12 +77,12 @@ jobs:
       - name: Generate filtered release notes
         id: release-notes
         run: |
-          echo "取得中のコミット範囲:"
-          echo "開始: ${{ steps.determine-range.outputs.from_commit }}"
-          echo "終了: ${{ steps.determine-range.outputs.to_commit }}"
-          echo "フィルタ条件: $FILTER_CONDITION"
+          echo "Fetching commit range:"
+          echo "Start: ${{ steps.determine-range.outputs.from_commit }}"
+          echo "End: ${{ steps.determine-range.outputs.to_commit }}"
+          echo "Filter conditions: $FILTER_CONDITION"
 
-          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" || echo "一致するコミットがありません")
+          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" || echo "No matching commits found.")
 
           echo "::group::Notebook Contents"
           echo "$notes"
