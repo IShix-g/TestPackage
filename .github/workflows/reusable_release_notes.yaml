@@ -87,4 +87,5 @@ jobs:
           echo "::group::Notebook Contents"
           echo "$notes"
           echo "::endgroup::"
-          echo "::set-output name=notes::$notes"
+          
+          echo "notes=$notes" >> "$GITHUB_OUTPUT"
