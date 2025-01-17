@@ -27,7 +27,7 @@ jobs:
   # release
   create-release:
     needs: [update-packagejson]
-    uses: IShix-g/TestPackage/.github/workflows/create-release.yaml@main
+    uses: Cysharp/Actions/.github/workflows/create-release.yaml@main
     with:
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
       dry-run: ${{ inputs.dry-run }}
