@@ -46,6 +46,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Fetch all tags
         run: git fetch --tags
@@ -56,7 +58,7 @@ jobs:
           echo "Checking the specified tags..."
           # If the start tag is empty, fetch the hash of the first commit
           if [ -z "${{ inputs.from-tag }}" ]; then
-            from_commit=$(git rev-list --max-parents=0 HEAD)  # Fetch the first commit
+            from_commit=$(git rev-list --max-parents=0 HEAD)
             echo "Start tag is not specified. Using the first commit ($from_commit) as the start point."
           else
             from_commit="${{ inputs.from-tag }}"
