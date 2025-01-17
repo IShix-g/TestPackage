@@ -57,32 +57,32 @@ jobs:
           # If the start tag is empty, fetch the hash of the first commit
           if [ -z "${{ inputs.from-tag }}" ]; then
             from_commit=$(git rev-list --max-parents=0 HEAD)  # Fetch the first commit
-            echo "Start tag is not specified. Using the first commit (${from_commit}) as the start point."
+            echo "Start tag is not specified. Using the first commit ($from_commit) as the start point."
           else
             from_commit="${{ inputs.from-tag }}"
-            echo "Specified start tag: ${from_commit}"
+            echo "Specified start tag: $from_commit"
           fi
-          
+
           if [ -z "${{ inputs.to-tag }}" ]; then
             to_commit="HEAD"
-            echo "End tag is not specified. Using HEAD (${to_commit}) as the end point."
+            echo "End tag is not specified. Using HEAD ($to_commit) as the end point."
           else
             to_commit="${{ inputs.to-tag }}"
-            echo "Specified end tag: ${to_commit}"
+            echo "Specified end tag: $to_commit"
           fi
-          
-          echo "::set-output name=from_commit::$from_commit"
-          echo "::set-output name=to_commit::$to_commit"
+
+          echo "from_commit=$from_commit" >> $GITHUB_ENV
+          echo "to_commit=$to_commit" >> $GITHUB_ENV
 
       - name: Generate filtered release notes
         id: release-notes
         run: |
           echo "Fetching commit range:"
-          echo "Start: ${{ steps.determine-range.outputs.from_commit }}"
-          echo "End: ${{ steps.determine-range.outputs.to_commit }}"
+          echo "Start: ${{ env.from_commit }}"
+          echo "End: ${{ env.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
-          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" || echo "No matching commits found.")
+          notes=$(git log ${{ env.from_commit }}..${{ env.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" || echo "No matching commits found.")
 
           echo "::group::Notebook Contents"
           echo "$notes"
