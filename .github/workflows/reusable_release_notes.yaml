@@ -37,7 +37,8 @@ jobs:
     outputs:
       notes: ${{ steps.release-notes.outputs.notes }}
     env:
-      FILTER_CONDITION: "fix|feat|docs|style|refactor|perf"
+      FILTER_CONDITION: |
+        fix|feat|docs|style|refactor|perf
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -79,7 +80,7 @@ jobs:
 
           notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" || echo "一致するコミットがありません")
 
-          echo "::group::Filtered Notebook Contents"
+          echo "::group::Notebook Contents"
           echo "$notes"
           echo "::endgroup::"
           echo "::set-output name=notes::$notes"
