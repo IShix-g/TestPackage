@@ -77,7 +77,7 @@ jobs:
           echo "終了: ${{ steps.determine-range.outputs.to_commit }}"
           echo "フィルタ条件: $FILTER_CONDITION"
 
-          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --oneline | grep -iE "$FILTER_CONDITION" || echo "一致するコミットがありません")
+          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --pretty='format:"${{ inputs.commit-message-format }}"' | grep -iE "$FILTER_CONDITION" || echo "一致するコミットがありません")
 
           echo "::group::Notebook Contents"
           echo "$notes"
