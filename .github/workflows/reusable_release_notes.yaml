@@ -24,6 +24,7 @@ on:
     outputs:
       notes:
         description: '生成されたリリースノート'
+        value: ${{ jobs.generate-notes.outputs.notes }}
 
 jobs:
   generate-notes:
