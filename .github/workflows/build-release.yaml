@@ -26,3 +26,20 @@ jobs:
       file-path: ./Packages/SimplePackage/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
+
+  # release
+  create-release:
+    needs: [update-packagejson]
+    uses: IShix-g/TestPackage/.github/workflows/create-release.yaml@main
+    with:
+      commit-id: ${{ needs.update-packagejson.outputs.sha }}
+      dry-run: ${{ inputs.dry-run }}
+      tag: ${{ inputs.tag }}
+    secrets: inherit
+
+  cleanup:
+    if: ${{ needs.update-packagejson.outputs.is-branch-created == 'true' }}
+    needs: [update-packagejson]
+    uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
+    with:
+      branch: ${{ needs.update-packagejson.outputs.branch-name }}
