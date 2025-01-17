@@ -25,7 +25,7 @@ on:
         description: 'コミットメッセージのフォーマット https://git-scm.com/docs/pretty-formats'
         required: false
         type: string
-        default: '- %s by %cn (%h)'
+        default: '- %s (%h)'
     outputs:
       notes:
         description: '生成されたリリースノート'
