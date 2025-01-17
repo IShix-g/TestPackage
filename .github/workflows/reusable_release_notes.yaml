@@ -11,11 +11,6 @@ on:
         description: '終了タグ (指定しない場合は最後のコミットまで)'
         required: false
         type: string
-      filter:
-        description: 'フィルタ条件 (例: fix|feat)'
-        required: true
-        type: string
-        default: 'fix|feat'
   workflow_call:
     inputs:
       from_tag:
@@ -26,11 +21,6 @@ on:
         description: '終了タグ (指定しない場合は最後のコミットまで)'
         required: false
         type: string
-      filter:
-        description: 'フィルタ条件 (例: fix|feat)'
-        required: true
-        type: string
-        default: 'fix|feat'
     outputs:
       notes:
         description: '生成されたリリースノート'
@@ -38,10 +28,10 @@ on:
 jobs:
   generate-notes:
     runs-on: ubuntu-latest
-
+    env:
+      FILTER_CONDITION: "fix|feat"
     outputs:
       notes: ${{ steps.release-notes.outputs.notes }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,10 +71,10 @@ jobs:
           echo "取得中のコミット範囲:"
           echo "開始: ${{ steps.determine-range.outputs.from_commit }}"
           echo "終了: ${{ steps.determine-range.outputs.to_commit }}"
-          echo "フィルタ条件: ${{ inputs.filter }}"
+          echo "フィルタ条件: $FILTER_CONDITION"
           
           # タグ間のコミットメッセージをフィルタリングして取得
-          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --oneline | grep -iE "${{ inputs.filter }}" || echo "一致するコミットがありません")
+          notes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --oneline | grep -iE "$FILTER_CONDITION" || echo "一致するコミットがありません")
           
           echo "::group::Filtered Notebook Contents"
           echo "$notes"
