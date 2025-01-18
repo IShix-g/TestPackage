@@ -65,7 +65,7 @@ jobs:
         if: ${{ inputs.from-tag != '' }}
         run: |
           if ! git tag --list | grep -q "^${{ inputs.from-tag }}$"; then
-            echo "Error: Specified from-tag '${{ inputs.from-tag }}' does not exist in the repository." >&2
+            echo "::error::Specified from-tag '${{ inputs.from-tag }}' does not exist in the repository."
             exit 1
           fi
 
@@ -73,7 +73,7 @@ jobs:
         if: ${{ inputs.to-tag != '' }}
         run: |
           if ! git tag --list | grep -q "^${{ inputs.to-tag }}$"; then
-            echo "Error: Specified to-tag '${{ inputs.to-tag }}' does not exist in the repository." >&2
+            echo "::error::Specified to-tag '${{ inputs.to-tag }}' does not exist in the repository."
             exit 1
           fi
 
