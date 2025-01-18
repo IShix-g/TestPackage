@@ -39,7 +39,7 @@ on:
       derive-from-tag:
         description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
         required: false
-        default: false
+        default: true
         type: boolean
     outputs:
       notes:
