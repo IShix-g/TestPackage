@@ -26,7 +26,7 @@ jobs:
     uses: ./.github/workflows/reusable-update-packagejson.yaml
     with:
       ref: ${{ github.ref }}
-      file-path: ./Packages/SimplePackage/package.json
+      file-path: ./Packages/TestSimplePackage/package.json
       tag: ${{ inputs.tag }}
       dry-run: true
 

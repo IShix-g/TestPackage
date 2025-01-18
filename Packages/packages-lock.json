@@ -14,6 +14,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.ishix.test.testsimplepackage": {
+      "version": "file:TestSimplePackage",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.ishix.test.unitydependencypackage": {
       "version": "file:UnityDependencyPackage",
       "depth": 0,
