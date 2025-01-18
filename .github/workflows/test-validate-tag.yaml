@@ -1,4 +1,4 @@
-name: Test Validate Tag
+name: (Test) Validate Tag
 
 on:
   workflow_dispatch:
