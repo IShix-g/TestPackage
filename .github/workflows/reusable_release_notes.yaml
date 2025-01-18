@@ -16,6 +16,11 @@ on:
         required: false
         type: string
         default: "- %s by %cn (%h)"
+      auto-set-from-tag:
+        description: "true = リポジトリを遡ってfrom-tagを設定する。 false = 設定しない。"
+        required: false
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       from-tag:
@@ -31,6 +36,11 @@ on:
         required: false
         type: string
         default: "- %s by %cn (%h)"
+      derive-from-tag:
+        description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
+        required: false
+        default: false
+        type: boolean
     outputs:
       notes:
         description: 'Generated release notes'
@@ -44,13 +54,33 @@ jobs:
     env:
       FILTER_CONDITION: "fix|feat|docs|style|refactor|perf"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Fetch all tags
         run: git fetch --tags
+
+      - name: Override from-tag
+        if: ${{ inputs.from-tag == '' && inputs.derive-from-tag == 'true' }}
+        id: override-from-tag
+        run: |
+          all_tags=$(git tag --sort=-creatordate || echo "")
+
+          if [ -z "$all_tags" ]; then
+            echo "No tags found in the repository. Skipping from-tag override."
+            exit 0
+          fi
+
+          tags=($all_tags)
+          if [ ${#tags[@]} -lt 2 ]; then
+            echo "Not enough tags to set the range. At least 2 tags are required."
+            exit 0
+          fi
+
+          from_tag=${tags[1]}
+          echo "Using from-tag: $from_tag"
+          echo "from-tag=$from_tag" >> $GITHUB_ENV
 
       - name: Determine range
         id: determine-range
