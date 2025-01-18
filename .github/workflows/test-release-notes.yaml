@@ -40,7 +40,7 @@ jobs:
         run: |
           notes="${{ needs.release-notes.outputs.notes }}"
           IFS=$'\n'
-          echo "::notice::Release Note:
+          echo "::notice::Release Note:"
           for line in $notes; do
           echo "::notice::$line"
           done
