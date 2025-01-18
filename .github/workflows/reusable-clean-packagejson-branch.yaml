@@ -1,0 +1,46 @@
+name: (Reusable) Clean package.json branch
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: "branch name to delete. Only delete branches that are created by github-actions[bot] and are not the default branch."
+        required: true
+        type: string
+    outputs:
+      branch-deleted:
+        description: "Indicate branch is deleted or not by boolean. true = branch deleted, false = branch not deleted."
+        value: ${{ jobs.cleanup.outputs.branch-deleted }}
+
+jobs:
+  cleanup:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      branch-deleted: ${{ steps.check-branch.outputs.deletable }}
+    steps:
+      - name: Check branch is deletable
+        id: check-branch
+        run: |
+          default_branch=$(gh api /repos/${{ github.repository }} --jq '.default_branch')
+          branch_info=$(gh api /repos/${{ github.repository }}/branches/${{ inputs.branch }} 2>/dev/null)
+
+          if [[ "$default_branch" == "${{ inputs.branch }}" || \
+                -z "$branch_info" || \
+                $(echo "$branch_info" | jq -r '.commit.author.login') != "github-actions[bot]" ]]; then
+
+            echo "Branch cannot be deleted: either it is the default branch, does not exist, or was not created by github-actions[bot]."
+            echo "Branch: ${{ inputs.branch }}"
+            echo "deletable=false" | tee -a "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          echo "Branch is deletable."
+          echo "Branch: ${{ inputs.branch }}"
+          echo "deletable=true" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Delete branch
+        if: ${{ steps.check-branch.outputs.deletable == 'true' }}
+        run: gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/${{ inputs.branch }}
