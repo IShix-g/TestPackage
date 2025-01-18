@@ -54,7 +54,7 @@ jobs:
 
           sorted_latest=$(echo -e "$release_latest\n${{ steps.trim.outputs.normalized-tag }}" | sort -V | tail -n1)
           if [[ "$sorted_latest" == "$release_latest" ]]; then
-            echo "Tag is reverting. Bump version. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
+            echo "::error::Tag is reverting. Bump version. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=false" | tee -a "$GITHUB_OUTPUT"
             [[ "${{ inputs.require-validation }}" == "true" ]] && exit 1
           else
