@@ -16,10 +16,10 @@ on:
         required: false
         type: string
         default: "- %s by %cn (%h)"
-      auto-set-from-tag:
-        description: "true = リポジトリを遡ってfrom-tagを設定する。 false = 設定しない。"
+      derive-from-tag:
+        description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
         required: false
-        default: false
+        default: true
         type: boolean
   workflow_call:
     inputs:
@@ -63,7 +63,6 @@ jobs:
 
       - name: Override from-tag
         if: ${{ inputs.from-tag == '' && inputs.derive-from-tag == 'true' }}
-        id: override-from-tag
         run: |
           all_tags=$(git tag --sort=-creatordate || echo "")
 
@@ -78,20 +77,43 @@ jobs:
             exit 0
           fi
 
-          from_tag=${tags[1]}
-          echo "Using from-tag: $from_tag"
+          if [ -n "${{ inputs.to-tag }}" ]; then
+            echo "to-tag is specified: ${{ inputs.to-tag }}"
+
+            for i in "${!tags[@]}"; do
+              if [ "${tags[$i]}" == "${{ inputs.to-tag }}" ]; then
+                if [ $i -lt $((${#tags[@]} - 1)) ]; then
+                  from_tag=${tags[$((i+1))]}
+                  echo "Using previous tag as from-tag: $from_tag"
+                else
+                  echo "Error: to-tag is the first tag, no previous tags available."
+                  exit 0
+                fi
+                break
+              fi
+            done
+          else
+            echo "to-tag is not specified. Using the last two tags."
+            from_tag=${tags[1]}
+          fi
+
           echo "from-tag=$from_tag" >> $GITHUB_ENV
+
+      - name: Ensure from-tag is set
+        if: ${{ inputs.derive-from-tag == 'false' || env.from_tag == '' }}
+        run: |
+          echo "from-tag=${{ inputs.from-tag }}" >> $GITHUB_ENV
 
       - name: Determine range
         id: determine-range
         run: |
           echo "Checking the specified tags..."
           # If the start tag is empty, fetch the hash of the first commit
-          if [ -z "${{ inputs.from-tag }}" ]; then
+          if [ -z "${{ env.from-tag }}" ]; then
             from_commit=$(git rev-list --max-parents=0 HEAD)
             echo "Start tag is not specified. Using the first commit ($from_commit) as the start point."
           else
-            from_commit="${{ inputs.from-tag }}"
+            from_commit="${{ env.from-tag }}"
             echo "Specified start tag: $from_commit"
           fi
 
