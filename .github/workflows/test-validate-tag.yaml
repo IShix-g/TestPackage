@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       require-validation:
-        description: "require-validation: true disallow old tag or any invalid tag. false keep going even validate failed."
+        description: "true - Rejects old or invalid tags. false - Continues even if validation fails."
         required: false
         default: false
         type: boolean
