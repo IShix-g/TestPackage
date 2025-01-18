@@ -39,7 +39,8 @@ jobs:
       - name: Echo release notes
         run: |
           notes="${{ needs.release-notes.outputs.notes }}"
-          IFS=$'\n' # 改行区切りでループ
+          IFS=$'\n'
+          echo "::notice::Release Note:
           for line in $notes; do
-          echo "::notice::Release Note: $line"
+          echo "::notice::$line"
           done
