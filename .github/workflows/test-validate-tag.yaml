@@ -1,0 +1,31 @@
+name: (Test) Validate Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      require-validation:
+        description: "require-validation: true disallow old tag or any invalid tag. false keep going even validate failed."
+        required: false
+        default: false
+        type: boolean
+      tag:
+        description: "tag: tag to validate"
+        required: true
+        type: string
+
+jobs:
+  validate-tag:
+    uses: ./.github/workflows/reusable-validate-tag.yaml@main
+    with:
+      require-validation: ${{ inputs.require-validation }}
+      tag: ${{ inputs.tag }}
+  
+  print:
+    needs: [ validate-tag ]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Echo release notes
+        run: |
+          echo "::notice::normalized-tag: ${{ needs.validate-tag.outputs.normalized-tag }}"
+          echo "::notice::normalized-tag: ${{ needs.validate-tag.outputs.tag }}"
+          echo "::notice::normalized-tag: ${{ needs.validate-tag.outputs.validated }}"

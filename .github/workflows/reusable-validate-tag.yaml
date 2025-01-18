@@ -13,26 +13,15 @@ on:
         required: true
         type: string
     outputs:
-      normalized_tag:
+      normalized-tag:
         description: normalized tag, tag without v prefix.
-        value: ${{ jobs.validate.outputs.normalized_tag }}
+        value: ${{ jobs.validate.outputs.normalized-tag }}
       tag:
         description: same as input tag
         value: ${{ jobs.validate.outputs.tag }}
       validated:
         description: result of the validation is validated or not
         value: ${{ jobs.validate.outputs.validated }}
-  workflow_dispatch:
-    inputs:
-      require-validation:
-        description: "require-validation: allow old tag or not"
-        required: false
-        default: false
-        type: boolean
-      tag:
-        description: "tag: tag to validate"
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -44,15 +33,15 @@ jobs:
     timeout-minutes: 5
     outputs:
       tag: ${{ steps.trim.outputs.tag }}
-      normalized_tag: ${{ steps.trim.outputs.normalized_tag }}
+      normalized-tag: ${{ steps.trim.outputs.normalized-tag }}
       validated: ${{ steps.validate.outputs.validated }}
     steps:
       - name: Set version without "v" prefix
         id: trim
         run: |
           input_tag="${{ inputs.tag }}"
-          normalized_tag=${input_tag#v}
-          echo "normalized_tag=$normalized_tag" | tee -a "$GITHUB_OUTPUT"
+          normalized-tag=${input_tag#v}
+          echo "normalized-tag=$normalized-tag" | tee -a "$GITHUB_OUTPUT"
           echo "tag=$input_tag" | tee -a "$GITHUB_OUTPUT"
 
       # Only check released tag, allow override draft and pre-release. Old to new sort by version number.
@@ -63,13 +52,13 @@ jobs:
           release_latest=$(gh release list --exclude-drafts --exclude-pre-releases --json tagName,isLatest | jq -r '.[] | select(.isLatest) | .tagName')
           [[ -z "$release_latest" ]] && echo "There is not release tag." && echo "validated=true" | tee -a "$GITHUB_OUTPUT" && exit 0
 
-          sorted_latest=$(echo -e "$release_latest\n${{ steps.trim.outputs.normalized_tag }}" | sort -V | tail -n1)
+          sorted_latest=$(echo -e "$release_latest\n${{ steps.trim.outputs.normalized-tag }}" | sort -V | tail -n1)
           if [[ "$sorted_latest" == "$release_latest" ]]; then
-            echo "Tag is reverting. Bump version. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized_tag }}, latest: $release_latest"
+            echo "Tag is reverting. Bump version. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=false" | tee -a "$GITHUB_OUTPUT"
             [[ "${{ inputs.require-validation }}" == "true" ]] && exit 1
           else
-            echo "Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized_tag }}, latest: $release_latest"
+            echo "Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=true" | tee -a "$GITHUB_OUTPUT"
           fi
         env:

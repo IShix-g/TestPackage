@@ -38,7 +38,7 @@ on:
 
 jobs:
   validate:
-    uses: IShix-g/TestPackage/.github/workflows/reusable-validate-tag.yaml@main
+    uses: ./.github/workflows/reusable-validate-tag.yaml@main
     with:
       tag: ${{ inputs.tag }}
       require-validation: ${{ inputs.require-validation }}

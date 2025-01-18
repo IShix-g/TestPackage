@@ -24,7 +24,7 @@ on:
 
 jobs:
   release-notes:
-    uses: IShix-g/TestPackage/.github/workflows/reusable-release-notes.yaml@main
+    uses: ./.github/workflows/reusable-release-notes.yaml@main
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
@@ -33,3 +33,11 @@ jobs:
       to-tag: ${{ inputs.to-tag }}
       commit-message-format: ${{ inputs.commit-message-format }}
       derive-from-tag: ${{ inputs.derive-from-tag }}
+
+  print:
+    needs: [ release-notes ]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Echo release notes
+        run: |
+          echo "::notice::Release Notes: ${{ needs.release-notes.outputs.notes }}"
