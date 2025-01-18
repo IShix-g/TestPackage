@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref:  ${{ inputs.commit-id || 'HEAD' }}
+          ref: ${{ inputs.commit-id }}
           fetch-depth: 0
 
       - name: Fetch all tags
