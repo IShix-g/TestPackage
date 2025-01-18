@@ -72,14 +72,11 @@ jobs:
           fi
 
           tags=($all_tags)
-          if [ ${#tags[@]} -lt 2 ]; then
-            echo "Not enough tags to set the range. At least 2 tags are required."
-            exit 0
-          fi
 
-          if [ -n "${{ inputs.to-tag }}" ]; then
-            echo "to-tag is specified: ${{ inputs.to-tag }}"
-
+          if [ -z "${{ inputs.to-tag }}" ]; then
+            from_tag=${tags[0]}
+            echo "No to-tag specified. Using latest tag as from-tag: $from_tag"
+          else
             for i in "${!tags[@]}"; do
               if [ "${tags[$i]}" == "${{ inputs.to-tag }}" ]; then
                 if [ $i -lt $((${#tags[@]} - 1)) ]; then
@@ -92,11 +89,8 @@ jobs:
                 break
               fi
             done
-          else
-            echo "to-tag is not specified. Using the last two tags."
-            from_tag=${tags[1]}
           fi
-
+          
           echo "from-tag=$from_tag" >> $GITHUB_ENV
 
       - name: Ensure from-tag is set
