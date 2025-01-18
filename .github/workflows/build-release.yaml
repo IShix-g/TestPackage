@@ -25,6 +25,7 @@ jobs:
       dry-run: ${{ inputs.dry-run }}
 
   release-notes:
+    needs: [update-packagejson]
     uses: IShix-g/TestPackage/.github/workflows/reusable-release-notes.yaml@main
     with:
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
