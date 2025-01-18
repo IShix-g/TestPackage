@@ -29,7 +29,7 @@ on:
 
 jobs:
   validate:
-    uses: Cysharp/Actions/.github/workflows/validate-tag.yaml@main
+    uses: IShix-g/TestPackage/.github/workflows/validate-tag.yaml@main
     with:
       tag: ${{ inputs.tag }}
       require-validation: ${{ inputs.require-validation }}
