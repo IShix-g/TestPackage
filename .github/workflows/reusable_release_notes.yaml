@@ -62,7 +62,7 @@ jobs:
         run: git fetch --tags
 
       - name: Override from-tag
-        if: ${{ inputs.from-tag == '' && inputs.derive-from-tag == 'true' }}
+        if: ${{ inputs.from-tag == '' && inputs.derive-from-tag == true }}
         run: |
           all_tags=$(git tag --sort=-creatordate || echo "")
 
@@ -100,7 +100,7 @@ jobs:
           echo "from-tag=$from_tag" >> $GITHUB_ENV
 
       - name: Ensure from-tag is set
-        if: ${{ inputs.derive-from-tag == 'false' || env.from_tag == '' }}
+        if: ${{ inputs.derive-from-tag == false || env.from_tag == '' }}
         run: |
           echo "from-tag=${{ inputs.from-tag }}" >> $GITHUB_ENV
 
