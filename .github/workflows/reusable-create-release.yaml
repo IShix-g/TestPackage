@@ -38,7 +38,7 @@ on:
 
 jobs:
   validate:
-    uses: IShix-g/TestPackage/.github/workflows/reusable-validate-tag.yaml@main
+    uses: ./.github/workflows/reusable-validate-tag.yaml
     with:
       tag: ${{ inputs.tag }}
       require-validation: ${{ inputs.require-validation }}
@@ -57,7 +57,6 @@ jobs:
         with:
           ref: ${{ inputs.commit-id }}
 
-      # Create Releases
       - name: Create Tag
         run: |
           git tag ${{ inputs.tag }}
@@ -81,7 +80,6 @@ jobs:
             echo "Release name is expected! expected: $expected, actual: $actual"
           fi
 
-      # Clean up
       - name: Clean up. Wait 60s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
         if: ${{ inputs.dry-run || failure() }}
         run: |

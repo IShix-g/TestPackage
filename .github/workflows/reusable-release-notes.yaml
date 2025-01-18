@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref:  ${{ inputs.commit-id || 'HEAD' }}
+          ref: ${{ inputs.commit-id }}
           fetch-depth: 0
 
       - name: Fetch all tags
@@ -131,8 +131,10 @@ jobs:
           echo "End: ${{ env.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
-          notes=$(git log ${{ env.from_commit }}..${{ env.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" | grep -v 'github-actions[bot]' || echo "No matching commits found.")
-
+          notes=$(git log ${{ env.from_commit }}..${{ env.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" | grep -v "github-actions" || echo "No matching commits found.")
+          length=$(echo "$notes" | wc -l)
+          echo "::notice::Release Note: $length items"
+          
           echo "::group::Notebook Contents"
           echo "$notes"
           echo "::endgroup::"
