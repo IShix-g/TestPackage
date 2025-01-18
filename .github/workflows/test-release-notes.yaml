@@ -1,4 +1,4 @@
-name: (Test) Release Notes Generator
+name: Test Release Notes Generator
 
 on:
   workflow_dispatch:
