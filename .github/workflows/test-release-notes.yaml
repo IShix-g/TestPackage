@@ -41,6 +41,7 @@ jobs:
           notes="${{ needs.release-notes.outputs.notes }}"
           length=$(echo "$notes" | wc -l)
           echo "::notice::Release Note: $length items"
+          IFS=$'\n'
           for line in $notes; do
           echo $line
           done
