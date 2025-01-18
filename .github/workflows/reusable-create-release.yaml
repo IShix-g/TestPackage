@@ -30,6 +30,11 @@ on:
         description: "The custom release note to include in the release."
         required: false
         type: string
+      draft-release:
+        description: "true = Draft release, false = Non-draft release."
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   validate:
@@ -58,7 +63,12 @@ jobs:
           git tag ${{ inputs.tag }}
           git push origin ${{ inputs.tag }}
       - name: Create Release
-        run: gh release create ${{ inputs.tag }} --draft --verify-tag --title "${{ format(inputs.release-format, inputs.tag) }}" --generate-notes --notes "${{ inputs.release-note }}"
+        run: |
+          gh release create ${{ inputs.tag }} $([[ "${{ inputs.draft-release }}" = "true" ]] && echo "--draft") \
+            --verify-tag \
+            --title "${{ format(inputs.release-format, inputs.tag) }}" \
+            --generate-notes \
+            --notes "${{ inputs.release-note }}"
       - name: Wait and Verify Release Name is expected
         run: |
           sleep 5s
