@@ -15,7 +15,7 @@ on:
 
 jobs:
   validate-tag:
-    uses: ./.github/workflows/reusable-validate-tag.yaml@main
+    uses: ./.github/workflows/reusable-validate-tag.yaml
     with:
       require-validation: ${{ inputs.require-validation }}
       tag: ${{ inputs.tag }}
