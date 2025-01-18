@@ -1,4 +1,4 @@
-name: Create Release
+name: (Reusable) Create Release
 
 on:
   workflow_call:
@@ -26,10 +26,14 @@ on:
         required: false
         type: string
         default: 'Ver.{0}'
+      release-note:
+        description: "The custom release note to include in the release."
+        required: false
+        type: string
 
 jobs:
   validate:
-    uses: IShix-g/TestPackage/.github/workflows/validate-tag.yaml@main
+    uses: IShix-g/TestPackage/.github/workflows/reusable-validate-tag.yaml@main
     with:
       tag: ${{ inputs.tag }}
       require-validation: ${{ inputs.require-validation }}
@@ -54,7 +58,7 @@ jobs:
           git tag ${{ inputs.tag }}
           git push origin ${{ inputs.tag }}
       - name: Create Release
-        run: gh release create ${{ inputs.tag }} --draft --verify-tag --title "${{ format(inputs.release-format, inputs.tag) }}" --generate-notes
+        run: gh release create ${{ inputs.tag }} --draft --verify-tag --title "${{ format(inputs.release-format, inputs.tag) }}" --generate-notes --notes "${{ inputs.release-note }}"
       - name: Wait and Verify Release Name is expected
         run: |
           sleep 5s

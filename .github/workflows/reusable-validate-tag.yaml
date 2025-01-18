@@ -1,4 +1,4 @@
-name: Validate Tag
+name: (Reusable) Validate Tag
 
 on:
   workflow_call:

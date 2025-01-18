@@ -1,26 +1,6 @@
-name: Reusable Release Notes Generator
+name: (Reusable) Release Notes Generator
 
 on:
-  workflow_dispatch:
-    inputs:
-      from-tag:
-        description: 'Start tag (if not specified, the first commit is used) (sample 1.0.0)'
-        required: false
-        type: string
-      to-tag:
-        description: 'End tag (if not specified, the latest commit is used) (sample 1.0.0)'
-        required: false
-        type: string
-      commit-message-format:
-        description: 'Commit message format. See https://git-scm.com/docs/pretty-formats'
-        required: false
-        type: string
-        default: "- %s by %cn (%h)"
-      derive-from-tag:
-        description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
-        required: false
-        default: true
-        type: boolean
   workflow_call:
     inputs:
       from-tag:
@@ -36,6 +16,10 @@ on:
         required: false
         type: string
         default: "- %s by %cn (%h)"
+      commit-id:
+        description: "CommitId to create release & tag."
+        required: false
+        type: string
       derive-from-tag:
         description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
         required: false
@@ -56,6 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref:  ${{ inputs.commit-id || 'HEAD' }}
           fetch-depth: 0
 
       - name: Fetch all tags

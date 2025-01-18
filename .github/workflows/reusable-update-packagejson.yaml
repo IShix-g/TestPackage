@@ -1,4 +1,4 @@
-name: Update package.json
+name: (Reusable) Update package.json
 
 on:
   workflow_call:
@@ -38,7 +38,7 @@ on:
 
 jobs:
   validate:
-    uses: IShix-g/TestPackage/.github/workflows/validate-tag.yaml@main
+    uses: IShix-g/TestPackage/.github/workflows/reusable-validate-tag.yaml@main
     with:
       tag: ${{ inputs.tag }}
     secrets: inherit

@@ -1,0 +1,35 @@
+name: (Test) Release Notes Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      from-tag:
+        description: 'Start tag (if not specified, the first commit is used)'
+        required: false
+        type: string
+      to-tag:
+        description: 'End tag (if not specified, the latest commit is used)'
+        required: false
+        type: string
+      commit-message-format:
+        description: 'Commit message format. See https://git-scm.com/docs/pretty-formats'
+        required: false
+        type: string
+        default: "- %s by %cn (%h)"
+      derive-from-tag:
+        description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  release-notes:
+    uses: IShix-g/TestPackage/.github/workflows/reusable-release-notes.yaml@main
+    secrets:
+      BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
+    with:
+      from-tag: ${{ inputs.from-tag }}
+      to-tag: ${{ inputs.to-tag }}
+      commit-message-format: ${{ inputs.commit-message-format }}
+      derive-from-tag: ${{ inputs.derive-from-tag }}
