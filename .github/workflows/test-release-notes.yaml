@@ -42,5 +42,5 @@ jobs:
           IFS=$'\n'
           echo "::notice::Release Note:"
           for line in $notes; do
-          echo "::notice::$line"
+          echo $line
           done
