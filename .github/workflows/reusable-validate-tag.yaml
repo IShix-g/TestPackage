@@ -40,8 +40,8 @@ jobs:
         id: trim
         run: |
           input_tag="${{ inputs.tag }}"
-          normalized-tag=${input_tag#v}
-          echo "normalized-tag=$normalized-tag" | tee -a "$GITHUB_OUTPUT"
+          normalized_tag=${input_tag#v}
+          echo "normalized-tag=$normalized_tag" | tee -a "$GITHUB_OUTPUT"
           echo "tag=$input_tag" | tee -a "$GITHUB_OUTPUT"
 
       # Only check released tag, allow override draft and pre-release. Old to new sort by version number.
