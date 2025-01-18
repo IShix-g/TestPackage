@@ -39,6 +39,8 @@ jobs:
       - name: Echo release notes
         run: |
           notes="${{ needs.release-notes.outputs.notes }}"
-          echo "$notes" | while IFS= read -r line; do
-          echo "::notice:: $line"
+          length=$(echo "$notes" | wc -l)
+          echo "::notice::Release Note: $length items"
+          for line in $notes; do
+          echo $line
           done
