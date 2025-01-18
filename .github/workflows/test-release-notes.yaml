@@ -39,8 +39,6 @@ jobs:
       - name: Echo release notes
         run: |
           notes="${{ needs.release-notes.outputs.notes }}"
-          IFS=$'\n'
-          echo "::notice::Release Note:"
-          for line in $notes; do
-          echo $line
+          echo "$notes" | while IFS= read -r line; do
+          echo "::notice:: $line"
           done
