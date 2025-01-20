@@ -16,7 +16,7 @@ jobs:
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
     with:
       commit-id: ${{ github.sha }}
-      dry-run: ${{ inputs.dry-run }}
+      dry-run: true
       tag: ${{ inputs.tag }}
       release-note: "Create release test."
       draft-release: true
