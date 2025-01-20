@@ -29,12 +29,9 @@ on:
       sha:
         description: "Git commit sha after package.json has changed."
         value: ${{ jobs.update-packagejson.outputs.sha }}
-      branch-name:
-        description: "Git branch name created."
-        value: ${{ jobs.update-packagejson.outputs.branch-name }}
-      is-branch-created:
+      changed:
         description: "Indicate is Git branch created or not."
-        value: ${{ jobs.update-packagejson.outputs.is-branch-created }}
+        value: ${{ jobs.update-packagejson.outputs.changed }}
 
 jobs:
   validate-tag:
@@ -49,8 +46,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       sha: ${{ steps.commit.outputs.sha }}
-      branch-name: ${{ steps.configure.outputs.branch-name }}
-      is-branch-created: ${{ steps.commit.outputs.is-branch-created }}
+      changed: ${{ steps.check-update.outputs.changed }}
     steps:
       - name: Check secrets availability
         id: check-secrets
@@ -66,11 +62,6 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
-
-      - name: Configure Output variables
-        id: configure
-        run: |
-          echo "branch-name=test-release/${{ inputs.tag }}" | tee -a "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
         with:
@@ -130,13 +121,10 @@ jobs:
             git config --local user.name "github-actions[bot]"
             git commit -m "feat: Update package.json to ${{ needs.validate-tag.outputs.normalized-tag }}" -m "Commit by [GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" -a
             echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
-            echo "is-branch-created=${{ inputs.dry-run }}" | tee -a "$GITHUB_OUTPUT"
           elif [[ -n "${{ inputs.ref }}" ]]; then
             echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
-            echo "is-branch-created=false" | tee -a "$GITHUB_OUTPUT"
           else
             echo "sha=" | tee -a "$GITHUB_OUTPUT"
-            echo "is-branch-created=false" | tee -a "$GITHUB_OUTPUT"
           fi
 
       - name: Push changes
@@ -146,4 +134,3 @@ jobs:
           github_token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           branch: ${{ inputs.ref }}
           tags: false
-          force: ${{ inputs.dry-run }}

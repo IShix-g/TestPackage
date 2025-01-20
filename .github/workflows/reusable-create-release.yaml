@@ -34,6 +34,11 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      BOT_APP_ID:
+        required: false
+      BOT_PRIVATE_KEY:
+        required: false
 
 jobs:
   validate:
@@ -52,11 +57,28 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
+      - name: Check secrets availability
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.BOT_APP_ID }}" ] && [ -n "${{ secrets.BOT_PRIVATE_KEY }}" ]; then
+            echo "available=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate Token
+        if: ${{ steps.check-secrets.outputs.available == '1' }}
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit-id }}
 
       - name: Create Tag
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           git tag ${{ inputs.tag }}
           git push origin ${{ inputs.tag }}
@@ -81,6 +103,8 @@ jobs:
 
       - name: Clean up. Wait 60s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
         if: ${{ inputs.dry-run || failure() }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           if gh release list | grep Draft | grep ${{ inputs.tag }}; then
             sleep 60
