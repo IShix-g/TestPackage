@@ -27,6 +27,9 @@ jobs:
   update-packagejson:
     needs: [set-tag]
     uses: ./.github/workflows/reusable-update-packagejson.yaml
+    secrets:
+      BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
     with:
       ref: ${{ github.ref }}
       file-path: ./Packages/TestSimplePackage/package.json
@@ -40,9 +43,9 @@ jobs:
     steps:
       - name: Check update-packagejson with new version should update commit id
         run: |
-          echo "DEBUG: tag                : ${{ needs.set-tag.outputs.tag }}"
-          echo "DEBUG: github.sha         : ${{ github.sha }}"
-          echo "DEBUG: update-packagejson : ${{ needs.update-packagejson.outputs.sha }}"
+          echo "DEBUG: tag                    : ${{ needs.set-tag.outputs.tag }}"
+          echo "DEBUG: github.sha             : ${{ github.sha }}"
+          echo "DEBUG: update-packagejson.sha : ${{ needs.update-packagejson.outputs.sha }}"
 
           echo -n "FACT: sha for update-packagejson should be updated. "
           if [[ "${{ needs.update-packagejson.outputs.sha }}" != "${{ github.sha }}" ]]; then echo "[O PASS]"; else echo "[X FAIL]" && exit 1; fi

@@ -44,6 +44,23 @@ jobs:
           echo "normalized-tag=$normalized_tag" | tee -a "$GITHUB_OUTPUT"
           echo "tag=$input_tag" | tee -a "$GITHUB_OUTPUT"
 
+      - name: Validate tag format (Semantic Versioning)
+        id: validate_format
+        run: |
+          normalized_tag="${{ steps.trim.outputs.normalized-tag }}"
+          if [[ ! "$normalized_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$ ]]; then
+            if [[ "${{ inputs.require-validation }}" == "true" ]]; then
+              message_type="::error::"
+            else
+              message_type="::warning::"
+            fi
+            echo "$message_type Tag format is invalid. Expected Semantic Version (e.g., 1.0.0 or 1.0.0-alpha+build), but got: $normalized_tag"
+            echo "validated=false" | tee -a "$GITHUB_OUTPUT"
+            [[ "${{ inputs.require-validation }}" == "true" ]] && exit 1
+          else
+            echo "::notice::Tag format is valid: $normalized_tag"
+          fi
+
       - name: Validate tag is not reverting
         shell: bash
         id: validate
