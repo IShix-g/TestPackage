@@ -87,3 +87,6 @@ jobs:
             echo "::notice::Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=true" | tee -a "$GITHUB_OUTPUT"
           fi
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
