@@ -65,8 +65,12 @@ jobs:
           fi
 
       - name: Validate tag is not reverting
-        shell: bash
+        if: ${{ steps.validate.outputs.validated == 'true' }}
         id: validate
+        shell: bash
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           release_latest=$(gh release list --exclude-drafts --exclude-pre-releases --json tagName,isLatest | jq -r '.[] | select(.isLatest) | .tagName')
           [[ -z "$release_latest" ]] && echo "There is not release tag." && echo "validated=true" | tee -a "$GITHUB_OUTPUT" && exit 0
@@ -87,6 +91,3 @@ jobs:
             echo "::notice::Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=true" | tee -a "$GITHUB_OUTPUT"
           fi
-        env:
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
