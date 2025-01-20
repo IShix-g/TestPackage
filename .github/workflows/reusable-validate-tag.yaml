@@ -4,12 +4,12 @@ on:
   workflow_call:
     inputs:
       require-validation:
-        description: "require-validation: true disallow old tag or any invalid tag. false keep going even validate failed."
+        description: "true disallow old tag or any invalid tag. false keep going even validate failed."
         required: false
         default: false
         type: boolean
       tag:
-        description: "tag: tag to validate"
+        description: "tag to validate (sample 1.0.0)"
         required: true
         type: string
     outputs:
@@ -44,7 +44,6 @@ jobs:
           echo "normalized-tag=$normalized_tag" | tee -a "$GITHUB_OUTPUT"
           echo "tag=$input_tag" | tee -a "$GITHUB_OUTPUT"
 
-      # Only check released tag, allow override draft and pre-release. Old to new sort by version number.
       - name: Validate tag is not reverting
         shell: bash
         id: validate
@@ -54,11 +53,16 @@ jobs:
 
           sorted_latest=$(echo -e "$release_latest\n${{ steps.trim.outputs.normalized-tag }}" | sort -V | tail -n1)
           if [[ "$sorted_latest" == "$release_latest" ]]; then
-            echo "::error::Tag is reverting. Bump version. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
+            if [[ "${{ inputs.require-validation }}" == "true" ]]; then
+              message_type="::error::"
+            else
+              message_type="::warning::"
+            fi
+            echo "$message_type Tag is reverting. Bump version. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=false" | tee -a "$GITHUB_OUTPUT"
             [[ "${{ inputs.require-validation }}" == "true" ]] && exit 1
           else
-            echo "Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
+            echo "::notice::Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=true" | tee -a "$GITHUB_OUTPUT"
           fi
         env:

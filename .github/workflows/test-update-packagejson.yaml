@@ -17,11 +17,15 @@ jobs:
       - name: Set tag
         id: set-tag
         run: |
-          tag=${{ github.event_name == 'workflow_dispatch' && inputs.tag || format('1.2.{0}', github.run_number) }}
+          if [ -n "${{ inputs.tag }}" ]; then
+            tag="${{ inputs.tag }}"
+          else
+            tag="1.2.${{ github.run_number }}"
+          fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
   update-packagejson:
-    needs: [ set-tag ]
+    needs: [set-tag]
     uses: ./.github/workflows/reusable-update-packagejson.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
@@ -33,7 +37,7 @@ jobs:
       dry-run: true
 
   test:
-    needs: [ set-tag, update-packagejson]
+    needs: [set-tag, update-packagejson]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

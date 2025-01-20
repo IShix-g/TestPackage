@@ -22,9 +22,9 @@ on:
         default: ''
     secrets:
       BOT_APP_ID:
-        required: true
+        required: false
       BOT_PRIVATE_KEY:
-        required: true
+        required: false
     outputs:
       sha:
         description: "Git commit sha after package.json has changed."
@@ -53,6 +53,7 @@ jobs:
       is-branch-created: ${{ steps.commit.outputs.is-branch-created }}
     steps:
       - name: Generate Token
+        if: ${{ secrets.BOT_APP_ID != '' && secrets.BOT_PRIVATE_KEY != '' }}
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
@@ -73,7 +74,10 @@ jobs:
         run: |
           expected="${{ needs.validate.outputs.normalized-tag }}"
           while read -r file_path; do
-            if [[ "$file_path" == "" ]]; then continue; fi
+
+            if [[ -z "$file_path" ]]; then
+              continue
+            fi
 
             echo "Start $file_path"
             file_name=$(basename "$file_path")
@@ -120,7 +124,7 @@ jobs:
             git commit -m "feat: Update package.json to ${{ needs.validate.outputs.normalized-tag }}" -m "Commit by [GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" -a
             echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
             echo "is-branch-created=${{ inputs.dry-run }}" | tee -a "$GITHUB_OUTPUT"
-          elif [[ "${{ inputs.ref }}" != "" ]]; then
+          elif [[ -n "${{ inputs.ref }}" ]]; then
             echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
             echo "is-branch-created=false" | tee -a "$GITHUB_OUTPUT"
           else
@@ -132,7 +136,7 @@ jobs:
         if: ${{ steps.check_update.outputs.changed == '1' }}
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ steps.app-token.outputs.token }}
+          github_token: ${{ steps.app-token.outcome == 'success' && steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           branch: ${{ inputs.ref }}
           tags: false
           force: ${{ inputs.dry-run }}

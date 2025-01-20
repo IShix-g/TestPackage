@@ -92,12 +92,12 @@ jobs:
             done
           fi
           
-          echo "from-tag=$from_tag" >> $GITHUB_ENV
+          echo "from-tag=$from_tag" >> "$GITHUB_ENV"
 
       - name: Ensure from-tag is set
         if: ${{ inputs.derive-from-tag == false || env.from-tag == '' }}
         run: |
-          echo "from-tag=${{ inputs.from-tag }}" >> $GITHUB_ENV
+          echo "from-tag=${{ inputs.from-tag }}" >> "$GITHUB_ENV"
 
       - name: Determine range
         id: determine-range
@@ -120,18 +120,24 @@ jobs:
             echo "Specified end tag: $to_commit"
           fi
 
-          echo "from_commit=$from_commit" >> $GITHUB_ENV
-          echo "to_commit=$to_commit" >> $GITHUB_ENV
+          echo "from_commit=$from_commit" >> "$GITHUB_OUTPUT"
+          echo "to_commit=$to_commit" >> "$GITHUB_OUTPUT"
 
       - name: Generate filtered release notes
         id: release-notes
         run: |
           echo "Fetching commit range:"
-          echo "Start: ${{ env.from_commit }}"
-          echo "End: ${{ env.to_commit }}"
+          echo "Start: ${{ steps.determine-range.outputs.from_commit }}"
+          echo "End: ${{ steps.determine-range.outputs.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
-          notes=$(git log ${{ env.from_commit }}..${{ env.to_commit }} --pretty=format:"${{ inputs.commit-message-format }}" | grep -iE "$FILTER_CONDITION" | grep -v "github-actions" || echo "No matching commits found.")
+          notes=$(
+            git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
+            --pretty=format:"${{ inputs.commit-message-format }}" \
+            | grep -iE "$FILTER_CONDITION" \
+            | grep -v "github-actions" \
+            || echo "No matching commits found."
+          )
           length=$(echo "$notes" | wc -l)
           echo "::notice::Release Note: $length items"
           
