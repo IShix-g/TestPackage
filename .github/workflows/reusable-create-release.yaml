@@ -92,7 +92,7 @@ jobs:
 
       - name: Create Release
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create ${{ inputs.tag }} $([[ "${{ inputs.dry-run || inputs.draft-release }}" = "true" ]] && echo "--draft") \
             --verify-tag \
