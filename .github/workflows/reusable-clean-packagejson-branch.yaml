@@ -28,10 +28,9 @@ jobs:
           branch_info=$(gh api /repos/${{ github.repository }}/branches/${{ inputs.branch }} 2>/dev/null)
 
           if [[ "$default_branch" == "${{ inputs.branch }}" || \
-                -z "$branch_info" || \
-                $(echo "$branch_info" | jq -r '.commit.author.login') != "github-actions[bot]" ]]; then
+                -z "$branch_info" ]]; then
 
-            echo "Branch cannot be deleted: either it is the default branch, does not exist, or was not created by github-actions[bot]."
+            echo "Branch cannot be deleted: either it is the default branch, does not exist."
             echo "Branch: ${{ inputs.branch }}"
             exit 0
           fi
