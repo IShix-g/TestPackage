@@ -39,19 +39,10 @@ jobs:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
 
-      - name: Set Token
-        if: ${{ steps.app-token.outputs.token }}
-        id: set-token
-        run: |
-          echo "Generating GitHub App token..."
-          TOKEN=$(gh auth login --with-token)
-          echo "::add-mask::$TOKEN"
-          echo "APP_TOKEN=$TOKEN" >> "$GITHUB_OUTPUT"
-
       - name: Check branch is deletable
         id: check-branch
         env:
-          GH_TOKEN: ${{ steps.set-token.outputs.APP_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           default_branch=$(gh api /repos/${{ github.repository }} --jq '.default_branch')
           branch_info=$(gh api /repos/${{ github.repository }}/branches/${{ inputs.branch }} 2>/dev/null)
@@ -70,5 +61,5 @@ jobs:
       - name: Delete branch
         if: ${{ steps.check-branch.outputs.deletable == '1' }}
         env:
-          GH_TOKEN: ${{ steps.set-token.outputs.APP_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/${{ inputs.branch }}
