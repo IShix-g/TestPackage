@@ -39,6 +39,9 @@ on:
         required: false
       BOT_PRIVATE_KEY:
         required: false
+env:
+  # Time to wait (in seconds) before deleting the release, only applicable during dry-run.
+  WAIT_BEFORE_DELETE: 25
 
 jobs:
   validate:
@@ -97,7 +100,13 @@ jobs:
             --generate-notes \
             --notes "${{ inputs.release-note }}"
 
+      - name: Notify Release Completion
+        if: ${{ success() }}
+        run: |
+          echo "::notice::Release '${{ inputs.tag }}' has been successfully created!"
+
       - name: Wait and Verify Release Name is expected
+        if: ${{ success() }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
@@ -105,18 +114,38 @@ jobs:
           actual=$(gh api --paginate /repos/${{ github.repository }}/releases?per_page=100 --jq '.[] | select(.tag_name == "${{ inputs.tag }}") | .name')
           expected="${{ format(inputs.release-format, inputs.tag) }}"
           if [[ "$actual" != "$expected" ]]; then
-            echo "Release name is not as expected. expected: $expected, actual: $actual"
+            echo "::error::Error: The release name does not match the expected value. Expected: '$expected', Actual: '$actual'."
             exit 1
           else
-            echo "Release name is expected! expected: $expected, actual: $actual"
+            echo "::notice::Success: The release name matches the expected value! Expected: '$expected', Actual: '$actual'."
           fi
 
-      - name: Clean up. Wait 60s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
-        if: ${{ inputs.dry-run || failure() }}
+      - name: Clean up. delete release if failure. (dry-run=${{ inputs.dry-run }}})
+        if: ${{ failure() }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           if gh release list | grep Draft | grep ${{ inputs.tag }}; then
-            sleep 20
+            echo "::notice::Detected failure. Skipping wait and proceeding to deletion."
             gh release delete ${{ inputs.tag }} --yes --cleanup-tag
+          else
+            echo "::notice::Release '${{ inputs.tag }}' does not exist. Skipping cleanup."
+          fi
+
+      - name: Clean up. Wait ${WAIT_BEFORE_DELETE}s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
+        if: ${{ inputs.dry-run && success() }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release list | grep Draft | grep ${{ inputs.tag }}; then
+            echo "::notice::Release '${{ inputs.tag }}' found. Waiting ${WAIT_BEFORE_DELETE} seconds before initiating deletion..."
+            sleep $WAIT_BEFORE_DELETE
+            if gh release list | grep Draft | grep ${{ inputs.tag }}; then
+              gh release delete ${{ inputs.tag }} --yes --cleanup-tag
+              echo "::notice::Release '${{ inputs.tag }}' successfully deleted."
+            else
+              echo "::notice::Release '${{ inputs.tag }}' no longer exists. Skipping deletion."
+            fi
+          else
+            echo "::warning::Release '${{ inputs.tag }}' does not exist. Skipping cleanup."
           fi
