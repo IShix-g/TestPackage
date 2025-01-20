@@ -12,6 +12,6 @@ jobs:
     with:
       commit-id: ${{ github.sha }}
       dry-run: true
-      tag: "2.2.2"
+      tag: "10.10.10"
       release-note: "Create release test."
       draft-release: true
