@@ -45,12 +45,12 @@ jobs:
           echo "Generating GitHub App token..."
           TOKEN=$(gh auth login --with-token)
           echo "::add-mask::$TOKEN"
-          echo $TOKEN | gh secret set APP_TOKEN --repos ${{ github.repository }}
+          echo "APP_TOKEN=$TOKEN" >> "$GITHUB_ENV"
 
   cleanup:
     needs: [generate-app-token]
     env:
-      GH_TOKEN: ${{ secrets.APP_TOKEN || secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ env.APP_TOKEN || secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
