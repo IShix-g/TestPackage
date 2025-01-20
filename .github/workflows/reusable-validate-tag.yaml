@@ -51,7 +51,7 @@ jobs:
 
       - name: Validate tag format (Semantic Versioning)
         id: validate-format
-        if: ${{ inputs.validate-semantic-versioning == 'true' }}
+        if: ${{ inputs.validate-semantic-versioning == true }}
         run: |
           normalized_tag="${{ steps.trim.outputs.normalized-tag }}"
           if ! echo "$normalized_tag" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+-?)*(\+[0-9A-Za-z.]+)?$'; then
@@ -72,7 +72,7 @@ jobs:
 
       - name: Validate tag is not reverting
         id: validate-tag
-        if: ${{ inputs.validate-semantic-versioning == 'false' || steps.validate-format.outputs.validated == 'true' }}
+        if: ${{ inputs.validate-semantic-versioning == false || steps.validate-format.outputs.validated == 'true' }}
         shell: bash
         env:
           GH_REPO: ${{ github.repository }}
