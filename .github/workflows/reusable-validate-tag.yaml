@@ -34,7 +34,7 @@ jobs:
     outputs:
       tag: ${{ steps.trim.outputs.tag }}
       normalized-tag: ${{ steps.trim.outputs.normalized-tag }}
-      validated: ${{ steps.validate.outputs.validated }}
+      validated: ${{ steps.set-validated.outputs.validated }}
     steps:
       - name: Set version without "v" prefix
         id: trim
@@ -45,7 +45,7 @@ jobs:
           echo "tag=$input_tag" | tee -a "$GITHUB_OUTPUT"
 
       - name: Validate tag format (Semantic Versioning)
-        id: validate_format
+        id: validate-format
         run: |
           normalized_tag="${{ steps.trim.outputs.normalized-tag }}"
           if ! echo "$normalized_tag" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+-?)*(\+[0-9A-Za-z.]+)?$'; then
@@ -65,8 +65,8 @@ jobs:
           fi
 
       - name: Validate tag is not reverting
-        if: ${{ steps.validate.outputs.validated == 'true' }}
-        id: validate
+        if: ${{ steps.validate-format.outputs.validated == 'true' }}
+        id: validate-tag
         shell: bash
         env:
           GH_REPO: ${{ github.repository }}
@@ -90,4 +90,13 @@ jobs:
           else
             echo "::notice::Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=true" | tee -a "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set validated result
+        id: set-validated
+        run: |
+          if [ -n "${{ steps.validate.outputs.validated }}" ]; then
+            echo "validated=${{ steps.validate.outputs.validated }}" >> $GITHUB_OUTPUT
+          else
+            echo "validated=${{ steps.validate-format.outputs.validated }}" >> $GITHUB_OUTPUT
           fi
