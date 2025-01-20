@@ -142,7 +142,7 @@ jobs:
         if: ${{ steps.check_update.outputs.changed == '1' }}
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ steps.app-token.outcome == 'success' && steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.check-secrets.outputs.available == '1' && steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           branch: ${{ inputs.ref }}
           tags: false
           force: ${{ inputs.dry-run }}
