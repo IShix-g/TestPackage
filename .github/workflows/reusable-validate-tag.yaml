@@ -56,8 +56,9 @@ jobs:
             fi
             echo "$message_type Tag format is invalid. Expected Semantic Version (e.g., 1.0.0 or 1.0.0-alpha+build), but got: $normalized_tag"
             echo "validated=false" | tee -a "$GITHUB_OUTPUT"
-            echo "Value of require-validation: '${{ inputs.require-validation }}'"
-            [[ "${{ inputs.require-validation }}" == "true" ]] && echo "Exiting with exit 1" && exit 1
+            if [[ "${{ inputs.require-validation }}" == "true" ]]; then
+              exit 1
+            fi
           else
             echo "::notice::Tag format is valid: $normalized_tag"
             echo "validated=true" | tee -a "$GITHUB_OUTPUT"
@@ -79,7 +80,9 @@ jobs:
             fi
             echo "$message_type Tag is reverting. Bump version. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=false" | tee -a "$GITHUB_OUTPUT"
-            [[ "${{ inputs.require-validation }}" == "true" ]] && exit 1
+            if [[ "${{ inputs.require-validation }}" == "true" ]]; then
+              exit 1
+            fi
           else
             echo "::notice::Great, tag is latest. tag: ${{ inputs.tag }}, normalized: ${{ steps.trim.outputs.normalized-tag }}, latest: $release_latest"
             echo "validated=true" | tee -a "$GITHUB_OUTPUT"
