@@ -8,6 +8,11 @@ on:
         required: false
         default: false
         type: boolean
+      validate-semantic-versioning:
+        description: "Whether to validate tag format using Semantic Versioning"
+        required: false
+        default: true
+        type: boolean
       tag:
         description: "tag: tag to validate"
         required: true
@@ -18,6 +23,7 @@ jobs:
     uses: ./.github/workflows/reusable-validate-tag.yaml
     with:
       require-validation: ${{ inputs.require-validation }}
+      validate-semantic-versioning: ${{ inputs.validate-semantic-versioning }}
       tag: ${{ inputs.tag }}
   
   print:
