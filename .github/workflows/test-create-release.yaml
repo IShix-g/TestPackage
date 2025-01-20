@@ -1,0 +1,22 @@
+name: (Test) Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "tag: tag to validate"
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    uses: ./.github/workflows/reusable-create-release.yaml
+    secrets:
+      BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
+    with:
+      commit-id: ${{ github.sha }}
+      dry-run: ${{ inputs.dry-run }}
+      tag: ${{ inputs.tag }}
+      release-note: "Create release test."
+      draft-release: true
