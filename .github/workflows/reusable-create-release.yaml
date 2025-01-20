@@ -100,11 +100,10 @@ jobs:
             --generate-notes \
             --notes "${{ inputs.release-note }}"
 
-      - name: Notify Release Completion
-        run: |
           echo "::notice::Release '${{ inputs.tag }}' has been successfully created!"
 
       - name: Wait and Verify Release Name is expected
+        if: ${{ success() }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
@@ -118,14 +117,14 @@ jobs:
             echo "::notice::Success: The release name matches the expected value! Expected: '$expected', Actual: '$actual'."
           fi
 
-      - name: Clean up. Wait ${WAIT_BEFORE_DELETE}s and delete release if dry-run. (dry-run=${{ inputs.dry-run }}})
-        if: ${{ inputs.dry-run }}
+      - name: Clean up. Wait ${{ env.WAIT_BEFORE_DELETE }}s and delete release if dry-run. (dry-run=${{ inputs.dry-run }}})
+        if: ${{ inputs.dry-run && success() }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           if gh release list | grep Draft | grep ${{ inputs.tag }}; then
             echo "::notice::Release '${{ inputs.tag }}' found. Waiting ${WAIT_BEFORE_DELETE} seconds before initiating deletion..."
-            sleep $WAIT_BEFORE_DELETE
+            sleep ${{ env.WAIT_BEFORE_DELETE }}
             if gh release list | grep Draft | grep ${{ inputs.tag }}; then
               gh release delete ${{ inputs.tag }} --yes --cleanup-tag
               echo "::notice::Release '${{ inputs.tag }}' successfully deleted."
