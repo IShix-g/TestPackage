@@ -33,14 +33,13 @@ jobs:
 
             echo "Branch cannot be deleted: either it is the default branch, does not exist, or was not created by github-actions[bot]."
             echo "Branch: ${{ inputs.branch }}"
-            echo "deletable=false" | tee -a "$GITHUB_OUTPUT"
             exit 0
           fi
 
           echo "Branch is deletable."
           echo "Branch: ${{ inputs.branch }}"
-          echo "deletable=true" | tee -a "$GITHUB_OUTPUT"
+          echo "deletable=1" | tee -a "$GITHUB_OUTPUT"
 
       - name: Delete branch
-        if: ${{ steps.check-branch.outputs.deletable == 'true' }}
+        if: ${{ steps.check-branch.outputs.deletable == '1' }}
         run: gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/${{ inputs.branch }}
