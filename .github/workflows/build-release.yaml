@@ -45,8 +45,8 @@ jobs:
       release-note: ${{ needs.release-notes.outputs.notes }}
 
   cleanup:
-    if: ${{ needs.update-packagejson.outputs.changed == '1' }}
     needs: [update-packagejson]
+    if: ${{ needs.update-packagejson.outputs.changed == '1' }}
     uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
     with:
       branch: ${{ github.ref }}
