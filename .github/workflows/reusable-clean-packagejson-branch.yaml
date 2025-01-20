@@ -20,6 +20,8 @@ on:
 jobs:
   generate-app-token:
     runs-on: ubuntu-22.04
+    outputs:
+      available: ${{ steps.check-secrets.outputs.available }}
     steps:
       - name: Check secrets availability
         id: check-secrets
@@ -48,7 +50,7 @@ jobs:
   cleanup:
     needs: [generate-app-token]
     env:
-      GH_TOKEN: ${{ env.APP_TOKEN || secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ needs.generate-app-token.outputs.available == '1' && env.APP_TOKEN || secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
