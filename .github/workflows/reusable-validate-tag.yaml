@@ -47,8 +47,9 @@ jobs:
       - name: Validate tag format (Semantic Versioning)
         id: validate_format
         run: |
-          normalized_tag="${{ steps.trim.outputs.normalized-tag }}"
-          if [[ ! "$normalized_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$ ]]; then
+          echo "::debug:: Checking normalized_tag: $normalized_tag"
+          
+          if ! echo "$normalized_tag" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$'; then
             if [[ "${{ inputs.require-validation }}" == "true" ]]; then
               message_type="::error::"
             else
