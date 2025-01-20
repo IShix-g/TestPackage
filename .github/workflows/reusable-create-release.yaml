@@ -101,12 +101,10 @@ jobs:
             --notes "${{ inputs.release-note }}"
 
       - name: Notify Release Completion
-        if: ${{ success() }}
         run: |
           echo "::notice::Release '${{ inputs.tag }}' has been successfully created!"
 
       - name: Wait and Verify Release Name is expected
-        if: ${{ success() }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
@@ -120,20 +118,8 @@ jobs:
             echo "::notice::Success: The release name matches the expected value! Expected: '$expected', Actual: '$actual'."
           fi
 
-      - name: Clean up. delete release if failure. (dry-run=${{ inputs.dry-run }}})
-        if: ${{ failure() }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
-        run: |
-          if gh release list | grep Draft | grep ${{ inputs.tag }}; then
-            echo "::notice::Detected failure. Skipping wait and proceeding to deletion."
-            gh release delete ${{ inputs.tag }} --yes --cleanup-tag
-          else
-            echo "::notice::Release '${{ inputs.tag }}' does not exist. Skipping cleanup."
-          fi
-
-      - name: Clean up. Wait ${WAIT_BEFORE_DELETE}s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
-        if: ${{ inputs.dry-run && success() }}
+      - name: Clean up. Wait ${WAIT_BEFORE_DELETE}s and delete release if dry-run. (dry-run=${{ inputs.dry-run }}})
+        if: ${{ inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
@@ -148,4 +134,16 @@ jobs:
             fi
           else
             echo "::warning::Release '${{ inputs.tag }}' does not exist. Skipping cleanup."
+          fi
+
+      - name: Clean up release after failure
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release list | grep Draft | grep ${{ inputs.tag }}; then
+            echo "::notice::Detected failure. Skipping wait and proceeding to deletion."
+            gh release delete ${{ inputs.tag }} --yes --cleanup-tag
+          else
+            echo "::notice::Release '${{ inputs.tag }}' does not exist. Skipping cleanup."
           fi
