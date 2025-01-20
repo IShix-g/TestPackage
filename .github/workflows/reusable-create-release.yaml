@@ -50,9 +50,10 @@ jobs:
 
   create-release:
     needs: [validate]
-    name: Create Release
     env:
       GH_REPO: ${{ github.repository }}
+    outputs:
+      token: ${{ steps.app-token.outputs.token }}
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -112,12 +113,27 @@ jobs:
             echo "Release name is expected! expected: $expected, actual: $actual"
           fi
 
-      - name: Clean up. Wait 60s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
+  delete-release:
+    needs: [validate, create-release]
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ needs.create-release.outputs.token || secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - name: Authenticate with GitHub CLI
+        if: ${{ needs.create-release.outputs.token }}
+        run: echo "${{ env.GH_TOKEN }}" | gh auth login --with-token
+
+      - name: Clean up release
         if: ${{ inputs.dry-run || failure() }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
-          if gh release list | grep Draft | grep ${{ inputs.tag }}; then
+          echo "Checking if release exists for tag: '${{ inputs.tag }}'..."
+          if gh release list --repo "${{ env.GH_REPO }}" | grep -E "\b${{ inputs.tag }}\b"; then
+            echo "Release found for tag '${{ inputs.tag }}'. Deleting release and associated tag..."
             sleep 20
-            gh release delete ${{ inputs.tag }} --yes --cleanup-tag
+            gh release delete "${{ inputs.tag }}" --yes --cleanup-tag --repo "${{ env.GH_REPO }}"
+            echo "Release and tag deleted successfully."
+          else
+            echo "No release found for tag '${{ inputs.tag }}'. Skipping deletion."
           fi
