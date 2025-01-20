@@ -42,7 +42,7 @@ jobs:
       - name: Check branch is deletable
         id: check-branch
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           default_branch=$(gh api /repos/${{ github.repository }} --jq '.default_branch')
           branch_info=$(gh api /repos/${{ github.repository }}/branches/${{ inputs.branch }} 2>/dev/null)
