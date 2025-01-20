@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "tag: git tag you want create. (sample 1.0.0)"
+        description: 'Git tag you want to create (e.g., 1.0.0).'
         required: true
         type: string
       dry-run:
-        description: "dry-run: true will never create relase/nuget."
+        description: 'Set to true to simulate the commit without pushing changes.'
         required: true
         default: false
         type: boolean
@@ -44,9 +44,9 @@ jobs:
       tag: ${{ inputs.tag }}
       release-note: ${{ needs.release-notes.outputs.notes }}
 
-#  cleanup:
-#    needs: [update-packagejson]
-#    if: ${{ needs.update-packagejson.outputs.changed == '1' }}
-#    uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
-#    with:
-#      branch: ${{ github.ref }}
+  cleanup:
+    needs: [update-packagejson]
+    if: ${{ needs.update-packagejson.outputs.changed == '1' }}
+    uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
+    with:
+      branch: ${{ github.ref }}
