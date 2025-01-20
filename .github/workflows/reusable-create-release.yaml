@@ -76,6 +76,10 @@ jobs:
           ref: ${{ inputs.commit-id }}
           persist-credentials: false
 
+      - name: Configure Git Authentication with Custom Token
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
+
       - name: Create Tag
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
