@@ -52,7 +52,6 @@ jobs:
     needs: [validate]
     name: Create Release
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
     runs-on: ubuntu-22.04
     timeout-minutes: 10
@@ -75,6 +74,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit-id }}
+          persist-credentials: false
 
       - name: Create Tag
         env:
@@ -82,14 +82,20 @@ jobs:
         run: |
           git tag ${{ inputs.tag }}
           git push origin ${{ inputs.tag }}
+
       - name: Create Release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           gh release create ${{ inputs.tag }} $([[ "${{ inputs.draft-release }}" = "true" ]] && echo "--draft") \
             --verify-tag \
             --title "${{ format(inputs.release-format, inputs.tag) }}" \
             --generate-notes \
             --notes "${{ inputs.release-note }}"
+
       - name: Wait and Verify Release Name is expected
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           sleep 5s
           actual=$(gh api --paginate /repos/${{ github.repository }}/releases?per_page=100 --jq '.[] | select(.tag_name == "${{ inputs.tag }}") | .name')
