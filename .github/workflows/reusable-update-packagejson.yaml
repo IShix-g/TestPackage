@@ -53,7 +53,7 @@ jobs:
       is-branch-created: ${{ steps.commit.outputs.is-branch-created }}
     steps:
       - name: Generate Token
-        if: ${{ secrets.BOT_APP_ID != '' && secrets.BOT_PRIVATE_KEY != '' }}
+        if: ${{ secrets.BOT_APP_ID && secrets.BOT_PRIVATE_KEY }}
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
