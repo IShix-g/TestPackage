@@ -76,9 +76,9 @@ jobs:
           ref: ${{ inputs.ref }}
           persist-credentials: false
 
-      - name: Update files to version ${{ needs.validate.outputs.normalized-tag }}
+      - name: Update files to version ${{ needs.validate-tag.outputs.normalized-tag }}
         run: |
-          expected="${{ needs.validate.outputs.normalized-tag }}"
+          expected="${{ needs.validate-tag.outputs.normalized-tag }}"
           while read -r file_path; do
 
             if [[ -z "$file_path" ]]; then
@@ -95,7 +95,7 @@ jobs:
             echo "::group::Updating"
               if [[ "${file_name}" == "package.json" ]]; then
                 # Unity `"version": "VersionString",`
-                sed -i -e "s/\(\"version\":\) \"\(.*\)\",/\1 \"${{ needs.validate.outputs.normalized-tag }}\",/" "${file_path}"
+                sed -i -e "s/\(\"version\":\) \"\(.*\)\",/\1 \"${{ needs.validate-tag.outputs.normalized-tag }}\",/" "${file_path}"
                 actual=$(grep "version" "$file_path" | cut -d ':' -f 2 | tr -d ',' | tr -d '"' | tr -d ' ')
               else
                 echo "Unknown file name ${file_name} is specified."
@@ -118,16 +118,16 @@ jobs:
           done <<< "${{ inputs.file-path }}"
 
       - name: Check update on git
-        id: check_update
+        id: check-update
         run: git diff --exit-code || echo "changed=1" | tee -a "$GITHUB_OUTPUT"
 
-      - name: Commit files (updated? = ${{ steps.check_update.outputs.changed == '1' }})
+      - name: Commit files (updated? = ${{ steps.check-update.outputs.changed == '1' }})
         id: commit
         run: |
-          if [[ "${{ steps.check_update.outputs.changed }}" == "1" ]]; then
+          if [[ "${{ steps.check-update.outputs.changed }}" == "1" ]]; then
             git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
-            git commit -m "feat: Update package.json to ${{ needs.validate.outputs.normalized-tag }}" -m "Commit by [GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" -a
+            git commit -m "feat: Update package.json to ${{ needs.validate-tag.outputs.normalized-tag }}" -m "Commit by [GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" -a
             echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
             echo "is-branch-created=${{ inputs.dry-run }}" | tee -a "$GITHUB_OUTPUT"
           elif [[ -n "${{ inputs.ref }}" ]]; then
@@ -139,7 +139,7 @@ jobs:
           fi
 
       - name: Push changes
-        if: ${{ steps.check_update.outputs.changed == '1' }}
+        if: ${{ steps.check-update.outputs.changed == '1' }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ steps.check-secrets.outputs.available == '1' && steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
