@@ -49,15 +49,39 @@ jobs:
 
   cleanup:
     needs: [generate-app-token]
-    env:
-      GH_TOKEN: ${{ env.APP_TOKEN || secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
       branch-deleted: ${{ steps.check-branch.outputs.deletable }}
     steps:
+      - name: Check secrets availability
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.BOT_APP_ID }}" ] && [ -n "${{ secrets.BOT_PRIVATE_KEY }}" ]; then
+            echo "available=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate Token
+        if: ${{ steps.check-secrets.outputs.available == '1' }}
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Set Token
+        if: ${{ steps.app-token.outputs.token }}
+        id: set-token
+        run: |
+          echo "Generating GitHub App token..."
+          TOKEN=$(gh auth login --with-token)
+          echo "::add-mask::$TOKEN"
+          echo "APP_TOKEN=$TOKEN" >> "$GITHUB_OUTPUT"
+
       - name: Check branch is deletable
         id: check-branch
+        env:
+          GH_TOKEN: ${{ steps.set-token.outputs.APP_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           default_branch=$(gh api /repos/${{ github.repository }} --jq '.default_branch')
           branch_info=$(gh api /repos/${{ github.repository }}/branches/${{ inputs.branch }} 2>/dev/null)
