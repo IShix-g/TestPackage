@@ -20,8 +20,6 @@ on:
 jobs:
   generate-app-token:
     runs-on: ubuntu-22.04
-    outputs:
-      token: ${{ steps.app-token.outputs.token }}
     steps:
       - name: Check secrets availability
         id: check-secrets
@@ -38,10 +36,19 @@ jobs:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
 
+      - name: Set Token
+        if: ${{ steps.check-secrets.outputs.available == '1' && steps.app-token.outputs.token }}
+        id: set-token
+        run: |
+          echo "Generating GitHub App token..."
+          TOKEN=$(gh auth login --with-token)
+          echo "::add-mask::$TOKEN"
+          echo "APP_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+
   cleanup:
     needs: [generate-app-token]
     env:
-      GH_TOKEN: ${{ needs.generate-app-token.outputs.token || secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ env.APP_TOKEN || secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
