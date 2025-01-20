@@ -32,8 +32,8 @@ jobs:
           fi
 
       - name: Generate Token
-        if: ${{ steps.check-secrets.outputs.available == '1' }}
         id: app-token
+        if: ${{ steps.check-secrets.outputs.available == '1' }}
         uses: actions/create-github-app-token@v1
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
