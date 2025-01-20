@@ -103,6 +103,6 @@ jobs:
           if [ "$branch_deleted" -ne 1 ]; then
             echo "::error::Branch deletion failed or not successful."
             exit 1
-          else
-            echo "::notice::Branch successfully deleted."
           fi
+          
+          echo "::notice::Branch successfully deleted. $branch_deleted"
