@@ -22,9 +22,9 @@ on:
         default: ''
     secrets:
       BOT_APP_ID:
-        required: false
+        required: true
       BOT_PRIVATE_KEY:
-        required: false
+        required: true
     outputs:
       sha:
         description: "Git commit sha after package.json has changed."
@@ -37,14 +37,14 @@ on:
         value: ${{ jobs.update-packagejson.outputs.is-branch-created }}
 
 jobs:
-  validate:
+  validate-tag:
     uses: ./.github/workflows/reusable-validate-tag.yaml
     with:
       tag: ${{ inputs.tag }}
     secrets: inherit
 
   update-packagejson:
-    needs: [validate]
+    needs: [validate-tag]
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
