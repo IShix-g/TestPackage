@@ -4,24 +4,24 @@ on:
   workflow_call:
     inputs:
       from-tag:
-        description: 'Start tag (if not specified, the first commit is used)'
+        description: 'Start tag (default: first commit if unset)'
         required: false
         type: string
       to-tag:
-        description: 'End tag (if not specified, the latest commit is used)'
+        description: 'End tag (default: latest commit if unset)'
         required: false
         type: string
       commit-message-format:
-        description: 'Commit message format. See https://git-scm.com/docs/pretty-formats'
+        description: 'Commit message format (see https://git-scm.com/docs/pretty-formats)'
         required: false
         type: string
-        default: "- %s (%h)"
+        default: '- %s (%h)'
       commit-id:
-        description: "CommitId to create release & tag."
+        description: 'Commit ID for release and tag.'
         required: false
         type: string
       derive-from-tag:
-        description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
+        description: 'true = Auto-determine from-tag using previous tags; false = Set manually.'
         required: false
         default: true
         type: boolean
@@ -36,7 +36,7 @@ jobs:
     outputs:
       notes: ${{ steps.release-notes.outputs.notes }}
     env:
-      FILTER_CONDITION: "fix|feat|docs|style|refactor|perf"
+      FILTER_CONDITION: 'fix|feat|docs|style|refactor|perf'
     steps:
       - uses: actions/checkout@v4
         with:

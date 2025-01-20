@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       branch:
-        description: "branch name to delete. Only delete branches that are created by github-actions[bot] and are not the default branch."
+        description: 'Branch name to delete. Only deletes branches created by github-actions[bot] and not the default branch.'
         required: true
         type: string
     secrets:
@@ -14,7 +14,7 @@ on:
         required: false
     outputs:
       branch-deleted:
-        description: "Indicate branch is deleted or not by boolean. true = branch deleted, false = branch not deleted."
+        description: 'Indicates if the branch was deleted (true = deleted, false = not deleted).'
         value: ${{ jobs.cleanup.outputs.branch-deleted }}
 
 jobs:

@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "git tag you want create. (sample 1.0.0)"
-        default: ""
+        description: 'Git tag you want to create (e.g., 1.0.0).'
+        type: string
+        default: ''
 
 jobs:
   set-tag:

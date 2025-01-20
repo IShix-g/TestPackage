@@ -4,33 +4,33 @@ on:
   workflow_call:
     inputs:
       commit-id:
-        description: "CommitId to create release & tag."
+        description: 'Commit ID to create a release and tag.'
         required: true
         type: string
       dry-run:
-        description: "true = no upload. false = dry run changes && delete release after 60s."
+        description: 'true = no upload; false = draft changes and delete the release after WAIT_BEFORE_DELETE seconds.'
         required: true
         type: boolean
       require-validation:
-        description: "true require validation must pass, false to keep going even validation failed."
+        description: 'true requires validation to pass; false allows continuing even if validation fails.'
         required: false
         type: boolean
         default: true
       tag:
-        description: "Git tag to create. (sample 1.0.0)"
+        description: 'Git tag to create (e.g., 1.0.0).'
         required: true
         type: string
       release-format: # see: https://docs.github.com/en/actions/learn-github-actions/expressions#format
-        description: "Release format. (if 'Ver.{0}' is specified, the release title will be 'Ver.1.0.0'. set '{0}' if no prefix is preferred.)"
+        description: 'Format of the release title. If "Ver.{0}" is specified, the title will be "Ver.1.0.0". Use "{0}" for no prefix.'
         required: false
         type: string
         default: 'Ver.{0}'
       release-note:
-        description: "The custom release note to include in the release."
+        description: 'Custom release note to include in the release.'
         required: false
         type: string
       draft-release:
-        description: "true = Draft release, false = Non-draft release."
+        description: 'true = Draft release; false = Non-draft release.'
         required: false
         type: boolean
         default: false

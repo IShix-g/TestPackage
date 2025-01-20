@@ -4,23 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       from-tag:
-        description: 'Start tag (if not specified, the first commit is used)'
-        required: false
+        description: 'Start tag (default: first commit if unset)'
         type: string
+        default: ''
       to-tag:
-        description: 'End tag (if not specified, the latest commit is used)'
-        required: false
+        description: 'End tag (default: latest commit if unset)'
         type: string
+        default: ''
       commit-message-format:
-        description: 'Commit message format. See https://git-scm.com/docs/pretty-formats'
-        required: false
+        description: 'Commit message format (see https://git-scm.com/docs/pretty-formats)'
         type: string
-        default: "- %s by %cn (%h)"
+        default: '- %s by %cn (%h)'
       derive-from-tag:
-        description: "true = Automatically determine from-tag by looking at previous tags in the repository. false = Do not set it automatically."
-        required: false
-        default: true
+        description: 'true = Auto-determine from-tag using previous tags; false = Set manually.'
         type: boolean
+        default: true
 
 jobs:
   release-notes:

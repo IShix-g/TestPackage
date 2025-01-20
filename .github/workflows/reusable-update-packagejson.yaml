@@ -4,19 +4,19 @@ on:
   workflow_call:
     inputs:
       file-path:
-        description: "package.json path to update. You can input multiline paths. Supported files are `package.json`, `plugin.cfg` and `Directory.Build.props`"
+        description: 'Path to package.json to update. You can input multiline paths. Supported file is `package.json`.'
         required: true
         type: string
       tag:
-        description: "git tag you want create. (sample 1.0.0)"
+        description: 'Git tag you want to create (e.g., 1.0.0).'
         required: true
         type: string
       dry-run:
-        description: "true to simularate commit but not push change."
+        description: 'Set to true to simulate the commit without pushing changes.'
         required: true
         type: boolean
       ref:
-        description: "checkout ref"
+        description: 'Checkout ref.'
         required: false
         type: string
         default: ''
@@ -27,10 +27,10 @@ on:
         required: false
     outputs:
       sha:
-        description: "Git commit sha after package.json has changed."
+        description: 'Git commit SHA after package.json is updated.'
         value: ${{ jobs.update-packagejson.outputs.sha }}
       changed:
-        description: "Indicate is Git branch created or not."
+        description: 'Indicates if the Git branch was created or not.'
         value: ${{ jobs.update-packagejson.outputs.changed }}
 
 jobs:

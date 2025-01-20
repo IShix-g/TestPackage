@@ -4,17 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       require-validation:
-        description: "true - Rejects old or invalid tags. false - Continues even if validation fails."
-        required: false
+        description: 'true to disallow old tags or any invalid tags. false to proceed even if validation fails.'
+        type: boolean
         default: false
-        type: boolean
       validate-semantic-versioning:
-        description: "Whether to validate tag format using Semantic Versioning"
-        required: false
-        default: true
+        description: 'Specifies whether to validate the tag format using Semantic Versioning.'
         type: boolean
+        default: true
       tag:
-        description: "tag: tag to validate"
+        description: 'The tag to validate (e.g., 1.0.0).'
         required: true
         type: string
 

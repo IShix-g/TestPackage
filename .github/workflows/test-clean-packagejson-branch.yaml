@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "branch name"
-        default: ""
+        description: 'Branch name (optional). If left empty, an appropriate test branch will be created.'
+        type: string
+        default: ''
 
 jobs:
   set-branch:
