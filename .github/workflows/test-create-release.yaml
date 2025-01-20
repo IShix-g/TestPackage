@@ -2,11 +2,6 @@ name: (Test) Create Release
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "tag: tag to validate"
-        required: true
-        type: string
 
 jobs:
   create-release:
@@ -17,6 +12,6 @@ jobs:
     with:
       commit-id: ${{ github.sha }}
       dry-run: true
-      tag: ${{ inputs.tag }}
+      tag: "2.2.2"
       release-note: "Create release test."
       draft-release: true

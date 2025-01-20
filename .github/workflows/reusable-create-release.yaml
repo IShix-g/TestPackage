@@ -52,6 +52,7 @@ jobs:
     needs: [validate]
     name: Create Release
     env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
     runs-on: ubuntu-22.04
     timeout-minutes: 10
@@ -64,8 +65,8 @@ jobs:
           fi
 
       - name: Generate Token
-        if: ${{ steps.check-secrets.outputs.available == '1' }}
         id: app-token
+        if: ${{ steps.check-secrets.outputs.available == '1' }}
         uses: actions/create-github-app-token@v1
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
@@ -77,16 +78,11 @@ jobs:
           persist-credentials: false
 
       - name: Create Tag
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
         run: |
           git tag ${{ inputs.tag }}
           git push origin ${{ inputs.tag }}
 
       - name: Create Release
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           gh release create ${{ inputs.tag }} $([[ "${{ inputs.draft-release }}" = "true" ]] && echo "--draft") \
             --verify-tag \
@@ -95,8 +91,6 @@ jobs:
             --notes "${{ inputs.release-note }}"
 
       - name: Wait and Verify Release Name is expected
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           sleep 5s
           actual=$(gh api --paginate /repos/${{ github.repository }}/releases?per_page=100 --jq '.[] | select(.tag_name == "${{ inputs.tag }}") | .name')
@@ -110,8 +104,6 @@ jobs:
 
       - name: Clean up. Wait 60s and delete release if dry-run or failure. (dry-run=${{ inputs.dry-run }}})
         if: ${{ inputs.dry-run || failure() }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           if gh release list | grep Draft | grep ${{ inputs.tag }}; then
             sleep 60
