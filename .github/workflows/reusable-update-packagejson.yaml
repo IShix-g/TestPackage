@@ -15,6 +15,11 @@ on:
         description: 'Set to true to simulate the commit without pushing changes.'
         required: true
         type: boolean
+      require-validation:
+        description: 'true requires validation to pass; false allows continuing even if validation fails.'
+        required: false
+        type: boolean
+        default: true
       ref:
         description: 'Checkout ref.'
         required: false
@@ -38,6 +43,7 @@ jobs:
     uses: ./.github/workflows/reusable-validate-tag.yaml
     with:
       tag: ${{ inputs.tag }}
+      require-validation: ${{ inputs.require-validation }}
     secrets: inherit
 
   update-packagejson:
