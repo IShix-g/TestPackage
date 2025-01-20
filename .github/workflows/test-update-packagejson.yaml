@@ -61,4 +61,4 @@ jobs:
     needs: [ update-packagejson ]
     uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
     with:
-      branch: ${{ needs.update-packagejson3.outputs.branch-name }}
+      branch: ${{ needs.update-packagejson.outputs.branch-name }}
