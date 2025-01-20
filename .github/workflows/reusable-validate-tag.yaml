@@ -59,6 +59,7 @@ jobs:
             [[ "${{ inputs.require-validation }}" == "true" ]] && exit 1
           else
             echo "::notice::Tag format is valid: $normalized_tag"
+            echo "validated=true" | tee -a "$GITHUB_OUTPUT"
           fi
 
       - name: Validate tag is not reverting
