@@ -60,6 +60,9 @@ jobs:
             echo "[X FAIL]" && exit 1
           fi
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Fail test if dry-run commits any changes
         run: |
           echo "Verifying that no changes were committed during dry-run..."
