@@ -48,7 +48,7 @@ jobs:
           #!/bin/bash
           set -euo pipefail
 
-          if [[ -z "${INPUT_BRANCH:-}" ]]; then
+          if [ -z "${{ inputs.branch }}" ]; then
             echo "::error::Branch input is missing or undefined."
             exit 1
           fi
