@@ -7,10 +7,6 @@ on:
         description: 'Git tag you want to create (e.g., 1.0.0).'
         type: string
         default: ''
-      dry-run:
-        description: 'Set to true to simulate the commit without pushing changes.'
-        type: boolean
-        default: false
       require-validation:
         description: 'true requires validation to pass; false allows continuing even if validation fails.'
         type: boolean
@@ -42,7 +38,7 @@ jobs:
       ref: ${{ github.ref }}
       file-path: ./Packages/TestSimplePackage/package.json
       tag: ${{ inputs.tag }}
-      dry-run: ${{ inputs.dry-run }}
+      dry-run: true
       require-validation: ${{ inputs.require-validation }}
 
   test:
@@ -77,8 +73,8 @@ jobs:
           echo "[O PASS] Dry-run correctly skipped the commit"
 
   cleanup:
-    if: ${{ needs.update-packagejson3.outputs.is-branch-created == 'true' }}
+    if: ${{ !inputs.dry-run && needs.update-packagejson.outputs.changed == '1' }}
     needs: [ update-packagejson ]
     uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
     with:
-      branch: ${{ needs.update-packagejson.outputs.branch-name }}
+      branch:  ${{ github.ref }}
