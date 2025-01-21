@@ -24,7 +24,7 @@ jobs:
           if [ -n "${{ inputs.tag }}" ]; then
             tag="${{ inputs.tag }}"
           else
-            tag="1.2.${{ github.run_number }}"
+            tag="10.10.${{ github.run_number }}"
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
@@ -37,7 +37,7 @@ jobs:
     with:
       ref: ${{ github.ref }}
       file-path: ./Packages/TestSimplePackage/package.json
-      tag: ${{ inputs.tag }}
+      tag: ${{ needs.set-tag.outputs.tag }}
       dry-run: true
       require-validation: ${{ inputs.require-validation }}
 
