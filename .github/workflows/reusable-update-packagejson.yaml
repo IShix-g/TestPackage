@@ -119,10 +119,13 @@ jobs:
         id: check-update
         run: git diff --exit-code || echo "changed=1" | tee -a "$GITHUB_OUTPUT"
 
-      - name: Commit files (updated? = ${{ steps.check-update.outputs.changed == '1' }})
+      - name: Commit files (updated? = ${{ steps.check-update.outputs.changed == '1' }} / dry-run = ${{ inputs.dry-run }})
         id: commit
         run: |
-          if [[ "${{ steps.check-update.outputs.changed }}" == "1" ]]; then
+          if [[ "${{ inputs.dry-run }}" == "true" ]]; then
+            echo "::notice::Dry-run enabled. No commit will be made."
+            git diff --name-only
+          elif [[ "${{ steps.check-update.outputs.changed }}" == "1" ]]; then
             git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
             git commit -m "feat: Update package.json to ${{ needs.validate-tag.outputs.normalized-tag }}" -m "Commit by [GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" -a
@@ -134,7 +137,7 @@ jobs:
           fi
 
       - name: Push changes
-        if: ${{ steps.check-update.outputs.changed == '1' }}
+        if: ${{ inputs.dry-run == false && steps.check-update.outputs.changed == '1' }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}

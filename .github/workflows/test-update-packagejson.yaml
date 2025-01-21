@@ -7,6 +7,14 @@ on:
         description: 'Git tag you want to create (e.g., 1.0.0).'
         type: string
         default: ''
+      dry-run:
+        description: 'Set to true to simulate the commit without pushing changes.'
+        type: boolean
+        default: false
+      require-validation:
+        description: 'true requires validation to pass; false allows continuing even if validation fails.'
+        type: boolean
+        default: false
 
 jobs:
   set-tag:
@@ -34,7 +42,8 @@ jobs:
       ref: ${{ github.ref }}
       file-path: ./Packages/TestSimplePackage/package.json
       tag: ${{ inputs.tag }}
-      dry-run: true
+      dry-run: ${{ inputs.dry-run }}
+      require-validation: ${{ inputs.require-validation }}
 
   test:
     needs: [set-tag, update-packagejson]
@@ -43,18 +52,29 @@ jobs:
     steps:
       - name: Check update-packagejson with new version should update commit id
         run: |
-          echo "DEBUG: tag                    : ${{ needs.set-tag.outputs.tag }}"
-          echo "DEBUG: github.sha             : ${{ github.sha }}"
-          echo "DEBUG: update-packagejson.sha : ${{ needs.update-packagejson.outputs.sha }}"
+          echo "DEBUG: Tag                   : ${{ needs.set-tag.outputs.tag }}"
+          echo "DEBUG: GitHub SHA            : ${{ github.sha }}"
+          echo "DEBUG: Update-packagejson SHA: ${{ needs.update-packagejson.outputs.sha }}"
+          
+          # Check conditions for dry-run
+          echo -n "FACT: Dry-run is enabled. SHA should remain unchanged. "
+          if [[ "${{ needs.update-packagejson.outputs.sha }}" == "" ]]; then
+            echo "[O PASS]"
+          else
+            echo "[X FAIL]" && exit 1
+          fi
 
-          echo -n "FACT: sha for update-packagejson should be updated. "
-          if [[ "${{ needs.update-packagejson.outputs.sha }}" != "${{ github.sha }}" ]]; then echo "[O PASS]"; else echo "[X FAIL]" && exit 1; fi
-
-          echo -n "FACT: is-branch-created for update-packagejson should be created. "
-          if [[ "${{ needs.update-packagejson.outputs.is-branch-created }}" == "true" ]]; then echo "[O PASS]"; else echo "[X FAIL]" && exit 1; fi
-
-          echo -n "FACT: branch-name for update-packagejson should be expected. "
-          if [[ "${{ needs.update-packagejson.outputs.branch-name }}" == "test-release/${{ needs.set-tag.outputs.tag }}" ]]; then echo "[O PASS]"; else echo "[X FAIL]" && exit 1; fi
+      - name: Fail test if dry-run commits any changes
+        run: |
+          echo "Verifying that no changes were committed during dry-run..."
+          git fetch
+          LOCAL_SHA=$(git rev-parse HEAD)
+          echo "LOCAL_SHA: $LOCAL_SHA"
+          if [[ "${{ needs.update-packagejson.outputs.sha }}" == "$LOCAL_SHA" ]]; then
+            echo "[X FAIL] Dry-run unexpectedly resulted in a commit"
+            exit 1
+          fi
+          echo "[O PASS] Dry-run correctly skipped the commit"
 
   cleanup:
     if: ${{ needs.update-packagejson3.outputs.is-branch-created == 'true' }}
