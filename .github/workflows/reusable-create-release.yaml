@@ -16,6 +16,11 @@ on:
         required: false
         type: boolean
         default: true
+      wait-before-delete:
+        description: 'Wait time in seconds before deleting the branch'
+        required: false
+        default: 25
+        type: number
       tag:
         description: 'Git tag to create (e.g., 1.0.0).'
         required: true
@@ -39,9 +44,6 @@ on:
         required: false
       BOT_PRIVATE_KEY:
         required: false
-env:
-  # Time to wait (in seconds) before deleting the release, only applicable during dry-run.
-  WAIT_BEFORE_DELETE: 25
 
 jobs:
   validate:
@@ -117,14 +119,14 @@ jobs:
             echo "::notice::Success: The release name matches the expected value! Expected: '$expected', Actual: '$actual'."
           fi
 
-      - name: Clean up. Wait ${{ env.WAIT_BEFORE_DELETE }}s and delete release if dry-run. (dry-run=${{ inputs.dry-run }}})
+      - name: Clean up. Wait ${{ input.wait-before-delete }}s and delete release if dry-run. (dry-run=${{ inputs.dry-run }}})
         if: ${{ inputs.dry-run && success() }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           if gh release list | grep Draft | grep ${{ inputs.tag }}; then
-            echo "::notice::Release '${{ inputs.tag }}' found. Waiting ${WAIT_BEFORE_DELETE} seconds before initiating deletion..."
-            sleep ${{ env.WAIT_BEFORE_DELETE }}
+            echo "::notice::Release '${{ inputs.tag }}' found. Waiting ${{ input.wait-before-delete }} seconds before initiating deletion..."
+            sleep ${{ input.wait-before-delete }}
             if gh release list | grep Draft | grep ${{ inputs.tag }}; then
               gh release delete ${{ inputs.tag }} --yes --cleanup-tag
               echo "::notice::Release '${{ inputs.tag }}' successfully deleted."
