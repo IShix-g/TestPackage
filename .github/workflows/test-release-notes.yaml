@@ -19,6 +19,7 @@ on:
         description: 'true = Auto-determine from-tag using previous tags; false = Set manually.'
         type: boolean
         default: true
+  workflow_call:
 
 jobs:
   release-notes:
