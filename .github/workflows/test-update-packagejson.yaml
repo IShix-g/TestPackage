@@ -24,7 +24,7 @@ jobs:
           if [ -n "${{ inputs.tag }}" ]; then
             tag="${{ inputs.tag }}"
           else
-            tag="10.10.${{ github.run_number }}"
+            tag="11.11.${{ github.run_number }}"
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "::notice::tag:$tag"

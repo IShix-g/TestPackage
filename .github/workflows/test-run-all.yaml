@@ -1,0 +1,20 @@
+name: Run All Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-update-packagejson:
+    uses: ./.github/workflows/test-update-packagejson.yaml
+
+  test-create-release:
+    uses: ./.github/workflows/test-create-release.yaml
+
+  test-validate-tag:
+    uses: ./.github/workflows/test-validate-tag.yaml
+
+  test-clean-packagejson-branch:
+    uses: ./.github/workflows/test-clean-packagejson-branch.yaml
+
+  test-release-notes:
+    uses: ./.github/workflows/test-release-notes.yaml
