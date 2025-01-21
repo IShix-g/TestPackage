@@ -45,25 +45,46 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
-          default_branch=$(gh api /repos/${{ github.repository }} --jq '.default_branch')
-          branch_info=$(gh api /repos/${{ github.repository }}/branches/${{ inputs.branch }} 2>/dev/null)
+          #!/bin/bash
+          set -euo pipefail
 
-          if [[ "$default_branch" == refs/heads/* ]]; then
-            clean_branch=${default_branch#refs/heads/}
-          else
-            echo "::warning::default_branch is not a local branch reference."
-            clean_branch="$default_branch"
+          if [[ -z "${INPUT_BRANCH:-}" ]]; then
+            echo "::error::Branch input is missing or undefined."
+            exit 1
           fi
 
-          if [[ "$clean_branch" == "${{ inputs.branch }}" || \
-                -z "$branch_info" ]]; then
-            echo "Branch cannot be deleted: either it is the default branch, does not exist."
-            echo "Branch: ${{ inputs.branch }}"
+          default_branch=$(gh api /repos/${{ github.repository }} --jq '.default_branch')
+          if [[ $? -ne 0 || -z "$default_branch" ]]; then
+            echo "::error::Failed to get default branch. Ensure authentication and repository exist."
+            exit 1
+          fi
+
+          branch="${{ inputs.branch }}"
+          branch_info=$(gh api /repos/${{ github.repository }}/branches/$branch 2>/dev/null)
+          if [[ $? -ne 0 ]]; then
+            echo "::notice::Branch does not exist or failed to fetch branch info for '$branch'."
+          fi
+
+          if [[ "$branch" =~ ^refs/heads/ ]]; then
+            clean_branch=${branch#refs/heads/}
+            elif [[ "$branch" =~ ^[a-zA-Z0-9/_-]+$ ]]; then
+            clean_branch="$branch"
+          else
+            echo "::error::Invalid branch format."
+            exit 1
+          fi
+
+          if [[ "$default_branch" == "$clean_branch" ]]; then
+            echo "::notice::Branch cannot be deleted because it is the default branch ($default_branch)."
             exit 0
           fi
 
-          echo "Branch is deletable."
-          echo "Branch: ${{ inputs.branch }}"
+          if [[ -z "$branch_info" ]]; then
+            echo "::notice::Branch cannot be deleted because it does not exist."
+            exit 0
+          fi
+
+          echo "::notice::[$(date '+%Y-%m-%d %H:%M:%S')] Verified: Branch '$clean_branch' is safe to delete."
           echo "deletable=1" | tee -a "$GITHUB_OUTPUT"
 
       - name: Delete branch
