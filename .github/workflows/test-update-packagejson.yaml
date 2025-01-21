@@ -27,6 +27,7 @@ jobs:
             tag="10.10.${{ github.run_number }}"
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "::notice::tag:$tag"
 
   update-packagejson:
     needs: [set-tag]

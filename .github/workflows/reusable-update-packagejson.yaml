@@ -131,7 +131,7 @@ jobs:
           VERSION: ${{ needs.validate-tag.outputs.normalized-tag }}
         run: |
           commit_message=${COMMIT_FORMAT//\{v\}/$VERSION}
-          echo "Formatted commit message: $commit_message"
+          echo "::notice::Formatted commit message: $commit_message"
           echo "message=$commit_message" >> "$GITHUB_OUTPUT"
 
       - name: Commit files (updated? = ${{ steps.check-update.outputs.changed == '1' }} / dry-run = ${{ inputs.dry-run }})
