@@ -21,6 +21,7 @@ jobs:
   cleanup:
     runs-on: ubuntu-22.04
     timeout-minutes: 5
+    
     outputs:
       branch-deleted: ${{ steps.check-branch.outputs.deletable }}
     steps:
@@ -42,12 +43,19 @@ jobs:
       - name: Check branch is deletable
         id: check-branch
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           default_branch=$(gh api /repos/${{ github.repository }} --jq '.default_branch')
           branch_info=$(gh api /repos/${{ github.repository }}/branches/${{ inputs.branch }} 2>/dev/null)
 
-          if [[ "$default_branch" == "${{ inputs.branch }}" || \
+          if [[ "$default_branch" == refs/heads/* ]]; then
+            clean_branch=${default_branch#refs/heads/}
+          else
+            echo "::warning::default_branch is not a local branch reference."
+            clean_branch="$default_branch"
+          fi
+
+          if [[ "$clean_branch" == "${{ inputs.branch }}" || \
                 -z "$branch_info" ]]; then
             echo "Branch cannot be deleted: either it is the default branch, does not exist."
             echo "Branch: ${{ inputs.branch }}"
