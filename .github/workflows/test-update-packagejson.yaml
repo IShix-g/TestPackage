@@ -10,7 +10,7 @@ on:
       require-validation:
         description: 'true requires validation to pass; false allows continuing even if validation fails.'
         type: boolean
-        default: false
+        default: true
 
 jobs:
   set-tag:
