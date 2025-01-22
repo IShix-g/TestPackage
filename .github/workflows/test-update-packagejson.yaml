@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: true
+    secrets:
+      BOT_APP_ID:
+        required: true
+      BOT_PRIVATE_KEY:
+        required: true
 
 jobs:
   set-tag:
