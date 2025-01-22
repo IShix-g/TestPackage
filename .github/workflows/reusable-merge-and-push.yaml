@@ -24,7 +24,6 @@ on:
     outputs:
       has-merged:
         description: 'Whether the branches were merged successfully'
-        type: boolean
         value: ${{ jobs.merge-and-push.outputs.has-merged }}
 
 jobs:
