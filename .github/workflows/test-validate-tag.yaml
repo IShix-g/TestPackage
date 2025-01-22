@@ -15,7 +15,6 @@ on:
         description: 'The tag to validate (e.g., 1.0.0).'
         type: string
         default: ''
-  workflow_call:
 
 jobs:
   set-tag:

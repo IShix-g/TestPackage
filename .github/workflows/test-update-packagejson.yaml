@@ -12,6 +12,15 @@ on:
         type: boolean
         default: true
   workflow_call:
+    inputs:
+      tag:
+        required: false
+        type: string
+        default: ''
+      require-validation:
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   set-tag:
