@@ -15,11 +15,9 @@ jobs:
 
       - name: Generate Branch Names
         id: generate-branches
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          target_branch="test-clean-package-branch/v1.1.${{ github.run_number }}.target"
-          push_branch="test-clean-package-branch/v1.1.${{ github.run_number }}.push"
+          target_branch="test-merge-and-push/v1.1.${{ github.run_number }}.target"
+          push_branch="test-merge-and-push/v1.1.${{ github.run_number }}.push"
           echo "target-branch=$target_branch" >> "$GITHUB_OUTPUT"
           echo "push-branch=$push_branch" >> "$GITHUB_OUTPUT"
 
@@ -33,6 +31,8 @@ jobs:
           if git ls-remote --heads origin "$target_branch" | grep "$target_branch"; then
             echo "Target branch $target_branch already exists. Skipping branch creation."
           else
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
             git checkout -b $target_branch
             echo "This is the target branch" > target-branch.txt
             git add target-branch.txt
@@ -50,6 +50,8 @@ jobs:
           if git ls-remote --heads origin "$push_branch" | grep "$push_branch"; then
             echo "Push branch $push_branch already exists. Skipping branch creation."
           else
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
             git checkout -b $push_branch
             echo "This is the push branch" > push-branch.txt
             git add push-branch.txt
