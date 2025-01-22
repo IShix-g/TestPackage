@@ -68,10 +68,9 @@ jobs:
           if [[ "$branch" =~ ^refs/heads/ ]]; then
             clean_branch=${branch#refs/heads/}
             elif [[ "$branch" =~ ^[a-zA-Z0-9/_-]+$ ]]; then
-            clean_branch="$branch"
+              clean_branch="$branch"
           else
-            echo "::error::Invalid branch format."
-            exit 1
+            clean_branch="$branch"
           fi
 
           if [[ "$default_branch" == "$clean_branch" ]]; then
