@@ -6,7 +6,7 @@ on:
       require-validation:
         description: 'true to disallow old tags or any invalid tags. false to proceed even if validation fails.'
         required: false
-        default: false
+        default: true
         type: boolean
       validate-semantic-versioning:
         description: 'Specifies whether to validate the tag format using Semantic Versioning.'
