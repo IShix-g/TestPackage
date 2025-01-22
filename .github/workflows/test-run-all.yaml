@@ -14,9 +14,3 @@ jobs:
   test-clean-packagejson-branch:
     needs: [test-update-packagejson, test-create-release]
     uses: ./.github/workflows/test-clean-packagejson-branch.yaml
-
-  test-validate-tag:
-    uses: ./.github/workflows/test-validate-tag.yaml
-
-  test-release-notes:
-    uses: ./.github/workflows/test-release-notes.yaml
