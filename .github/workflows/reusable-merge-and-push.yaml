@@ -1,0 +1,98 @@
+name: (Reusable) Merge and Push
+
+on:
+  workflow_call:
+    inputs:
+      target-branch:
+        description: 'Branch from target repository to merge'
+        required: true
+        type: string
+      push-branch:
+        description: 'Branch to push into'
+        required: false
+        type: string
+        default: ''
+      dry-run:
+        description: 'Dry-run mode (simulate without committing)'
+        type: boolean
+        default: false
+    secrets:
+      BOT_APP_ID:
+        required: false
+      BOT_PRIVATE_KEY:
+        required: false
+    outputs:
+      has-merged:
+        description: 'Whether the branches were merged successfully'
+        type: boolean
+        value: ${{ jobs.merge-and-push.outputs.has-merged }}
+
+jobs:
+  merge-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Default Push Branch if Empty
+        id: set-default-branch
+        run: |
+          if [ -z "${{ inputs.push-branch }}" ]; then
+            echo "push-branch=$(gh api /repos/owner/repo --jq '.default_branch')" >> "$GITHUB_OUTPUT"
+          else
+            echo "push-branch=${{ inputs.push-branch }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check secrets availability
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.BOT_APP_ID }}" ] && [ -n "${{ secrets.BOT_PRIVATE_KEY }}" ]; then
+            echo "available=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate Token
+        id: app-token
+        if: ${{ steps.check-secrets.outputs.available == '1' }}
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Checkout Repository and Target Branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.set-branch.outputs.branch }}
+          persist-credentials: false
+
+      - name: Fetch Target Branch (${ { inputs.target-branch } })
+        run: |
+          set -e
+          git fetch origin ${{ inputs.target-branch }}
+
+      - name: Checkout Push Branch (${ { steps.set-default-branch.outputs.push-branch } })
+        run: |
+          set -e
+          git checkout ${{ steps.set-default-branch.outputs.push-branch }} || git checkout -b ${{ steps.set-default-branch.outputs.push-branch }}
+
+      - name: Dry Run Merge
+        if: ${{ inputs.dry-run }}
+        run: |
+          set -e
+          echo "::notice::Dry-run mode is enabled. No merge will be performed."
+          git merge --no-commit --no-ff origin/${{ inputs.target-branch }}
+
+      - name: Merge Target Branch (${{ inputs.target-branch }}) to Push Branch (${{ steps.set-default-branch.outputs.push-branch }})
+        if: ${{ inputs.dry-run == false }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git merge origin/${{ inputs.target-branch }} || echo "::error::A conflict occurred during the merge. Please resolve it."
+
+      - name: Push to Branch (${{ steps.set-default-branch.outputs.push-branch }})
+        if: ${{ inputs.dry-run == false }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git push origin ${{ steps.set-default-branch.outputs.push-branch }}
+          echo "has-merged=true" >> "$GITHUB_OUTPUT"

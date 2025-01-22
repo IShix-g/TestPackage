@@ -49,7 +49,7 @@ jobs:
 
   clean-packagejson-branch:
     needs: [update-packagejson]
-    if: ${{ !inputs.clean-branch && needs.update-packagejson.outputs.changed == '1' }}
+    if: ${{ inputs.clean-branch && needs.update-packagejson.outputs.changed == '1' }}
     uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}

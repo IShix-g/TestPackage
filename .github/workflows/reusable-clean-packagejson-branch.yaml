@@ -21,7 +21,6 @@ jobs:
   cleanup:
     runs-on: ubuntu-22.04
     timeout-minutes: 5
-    
     outputs:
       branch-deleted: ${{ steps.check-branch.outputs.deletable }}
     steps:

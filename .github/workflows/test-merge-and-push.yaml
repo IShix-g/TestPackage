@@ -1,0 +1,97 @@
+name: (Test) Merge and Push
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-and-test-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Generate Branch Names
+        id: generate-branches
+        run: |
+          target_branch="test-clean-package-branch/v1.1.${{ github.run_number }}.target"
+          push_branch="test-clean-package-branch/v1.1.${{ github.run_number }}.push"
+          echo "target-branch=$target_branch" >> "$GITHUB_OUTPUT"
+          echo "push-branch=$push_branch" >> "$GITHUB_OUTPUT"
+
+      - name: Create Target Branch (${{ steps.generate-branches.outputs.target-branch }})
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          target_branch=${{ steps.generate-branches.outputs.target-branch }}
+
+          if git ls-remote --heads origin "$target_branch" | grep "$target_branch"; then
+            echo "Target branch $target_branch already exists. Skipping branch creation."
+          else
+            git checkout -b $target_branch
+            echo "This is the target branch" > target-branch.txt
+            git add target-branch.txt
+            git commit -m "Add target branch file"
+            git push origin $target_branch
+          fi
+
+      - name: Check and Create Push Branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          push_branch=${{ steps.generate-branches.outputs.push-branch }}
+
+          if git ls-remote --heads origin "$push_branch" | grep "$push_branch"; then
+            echo "Push branch $push_branch already exists. Skipping branch creation."
+          else
+            git checkout -b $push_branch
+            echo "This is the push branch" > push-branch.txt
+            git add push-branch.txt
+            git commit -m "Add push branch file"
+            git push origin $push_branch
+          fi
+
+      - name: Trigger Reusable Merge and Push
+        uses: ./.github/workflows/reusable-merge-and-push.yaml
+        secrets:
+          BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+          BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
+        with:
+          target-branch: ${{ steps.generate-branches.outputs.target-branch }}
+          push-branch: ${{ steps.generate-branches.outputs.push-branch }}
+
+      - name: Verify Merge (${{ steps.generate-branches.outputs.target-branch }} -> ${{ steps.generate-branches.outputs.push-branch }})
+        id: verify-merge-target-branch
+        run: |
+          set -e
+          target_branch=${{ steps.generate-branches.outputs.target-branch }}
+          push_branch=${{ steps.generate-branches.outputs.push-branch }}
+
+          git fetch origin $push_branch
+
+          if git merge-base --is-ancestor origin/$target_branch origin/$push_branch; then
+            echo "$target_branch is already merged into $push_branch."
+            echo "can-delete=true" >> $GITHUB_OUTPUT
+          else
+            echo "::error::$target_branch is not merged into $push_branch. Aborting deletion."
+            echo "can-delete=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Delete Target Branch (${{ steps.generate-branches.outputs.target-branch }})
+        uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
+        secrets:
+          BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+          BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
+        with:
+          branch: ${{ steps.generate-branches.outputs.target-branch }}
+
+      - name: Delete Push Branch (${{ steps.generate-branches.outputs.push-branch }})
+        uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
+        secrets:
+          BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+          BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
+        with:
+          branch: ${{ steps.generate-branches.outputs.push-branch }}
