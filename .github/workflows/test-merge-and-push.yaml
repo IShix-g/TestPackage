@@ -3,10 +3,6 @@ name: (Test) Merge and Push
 on:
   workflow_dispatch:
     inputs:
-      use-default-branch:
-        description: 'Use the default branch'
-        type: boolean
-        default: false
       delete-branch:
         description: 'Delete the branch after execution'
         type: boolean
@@ -26,11 +22,7 @@ jobs:
         id: generate-branches
         run: |
           target_branch="test-merge-and-push/v1.1.${{ github.run_number }}.target"
-          if ${{ inputs.use-default-branch }}; then
-            push_branch="${{ github.event.repository.default_branch }}"
-          else
-            push_branch="test-merge-and-push/v1.1.${{ github.run_number }}.push"
-          fi
+          push_branch="test-merge-and-push/v1.1.${{ github.run_number }}.push"
           echo "target-branch=$target_branch" >> "$GITHUB_OUTPUT"
           echo "push-branch=$push_branch" >> "$GITHUB_OUTPUT"
 
