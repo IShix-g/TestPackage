@@ -2,13 +2,18 @@ name: (Test) Merge and Push
 
 on:
   workflow_dispatch:
+    inputs:
+      use-default-branch:
+        description: 'Use the default branch'
+        type: boolean
+        default: false
 
 jobs:
   create-branches:
     runs-on: ubuntu-22.04
     outputs:
-      target-branch: ${{ steps.create-branches.outputs.target-branch }}
-      push-branch: ${{ steps.create-branches.outputs.push-branch }}
+      target-branch: ${{ steps.generate-branches.outputs.target-branch }}
+      push-branch: ${{ steps.generate-branches.outputs.push-branch }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -17,7 +22,11 @@ jobs:
         id: generate-branches
         run: |
           target_branch="test-merge-and-push/v1.1.${{ github.run_number }}.target"
-          push_branch="test-merge-and-push/v1.1.${{ github.run_number }}.push"
+          if ${{ inputs.use-default-branch }}; then
+            push_branch="${{ github.event.repository.default_branch }}"
+          else
+            push_branch="test-merge-and-push/v1.1.${{ github.run_number }}.push"
+          fi
           echo "target-branch=$target_branch" >> "$GITHUB_OUTPUT"
           echo "push-branch=$push_branch" >> "$GITHUB_OUTPUT"
 
