@@ -58,6 +58,18 @@ jobs:
             echo "::notice::Set Default Push Branch: $push-branch"
           fi
 
+      - name: Check and Exit if Branches Match
+        run: |
+          normalize_branch() {
+            echo "$1" | sed 's|^refs/heads/||'
+          }
+          target_branch_normalized=$(normalize_branch "${{ inputs.target-branch }}")
+          push_branch_normalized=$(normalize_branch "${{ steps.set-push-branch.outputs.push-branch }}")
+          if [ "$target_branch_normalized" = "$push_branch_normalized" ]; then
+            echo "::notice::The push-branch and target-branch are the same after normalization. Exiting the workflow."
+            exit 0
+          fi
+      
       - name: Checkout Repository and Target Branch
         uses: actions/checkout@v4
         with:
@@ -92,6 +104,7 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git merge origin/${{ inputs.target-branch }} || echo "::error::A conflict occurred during the merge. Please resolve it."
+          git commit -m "Merged '${{ inputs.target-branch }}' into '${{ steps.set-push-branch.outputs.push-branch }}' via GitHub Actions"
 
       - name: Configure Git Authentication with Custom Token
         if: ${{ steps.check-secrets.outputs.available == '1' }}
