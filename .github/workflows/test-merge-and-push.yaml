@@ -7,6 +7,10 @@ on:
         description: 'Use the default branch'
         type: boolean
         default: false
+      delete-branch:
+        description: 'Delete the branch after execution'
+        type: boolean
+        default: false
 
 jobs:
   create-branches:
@@ -99,7 +103,7 @@ jobs:
 
   delete-target-branch:
     needs: [create-branches, merge-and-push, verify-merge]
-    if: always()
+    if: ${{ inputs.delete-branch && always() }}
     uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
@@ -109,7 +113,7 @@ jobs:
 
   delete-push-branch:
     needs: [create-branches, merge-and-push, verify-merge]
-    if: always()
+    if: ${{ inputs.delete-branch && always() }}
     uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
