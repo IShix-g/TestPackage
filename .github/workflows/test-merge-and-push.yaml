@@ -10,7 +10,7 @@ on:
       delete-branch:
         description: 'Delete the branch after execution'
         type: boolean
-        default: false
+        default: true
 
 jobs:
   create-branches:
@@ -83,23 +83,28 @@ jobs:
     needs: [create-branches, merge-and-push]
     runs-on: ubuntu-22.04
     steps:
-    - name: Verify Merge (${{ needs.create-branches.outputs.target-branch }} -> ${{ needs.create-branches.outputs.push-branch }})
-      id: verify-merge-target-branch
-      run: |
-        set -e
-        target_branch=${{ needs.create-branches.outputs.target-branch }}
-        push_branch=${{ needs.create-branches.outputs.push-branch }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-        git fetch origin $push_branch
-
-        if git merge-base --is-ancestor origin/$target_branch origin/$push_branch; then
-          echo "$target_branch is already merged into $push_branch."
-          echo "can-delete=true" >> $GITHUB_OUTPUT
-        else
-          echo "::error::$target_branch is not merged into $push_branch. Aborting deletion."
-          echo "can-delete=false" >> $GITHUB_OUTPUT
-          exit 1
-        fi
+      - name: Verify Merge (${{ needs.create-branches.outputs.target-branch }} -> ${{ needs.create-branches.outputs.push-branch }})
+        id: verify-merge-target-branch
+        run: |
+          set -e
+          target_branch=${{ needs.create-branches.outputs.target-branch }}
+          push_branch=${{ needs.create-branches.outputs.push-branch }}
+  
+          git fetch origin $push_branch
+  
+          if git merge-base --is-ancestor origin/$target_branch origin/$push_branch; then
+            echo "$target_branch is already merged into $push_branch."
+            echo "can-delete=true" >> $GITHUB_OUTPUT
+          else
+            echo "::error::$target_branch is not merged into $push_branch. Aborting deletion."
+            echo "can-delete=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
 
   delete-target-branch:
     needs: [create-branches, merge-and-push, verify-merge]
