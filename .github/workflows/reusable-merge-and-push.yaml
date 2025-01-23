@@ -108,8 +108,13 @@ jobs:
           set -e
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git merge origin/${{ inputs.target-branch }} || echo "::error::A conflict occurred during the merge. Please resolve it."
-          git commit -m "Merged '${{ inputs.target-branch }}' into '${{ steps.set-push-branch.outputs.push-branch }}' via GitHub Actions"
+          git merge origin/${{ inputs.target-branch }} || { echo "::error::A conflict occurred during the merge. Please resolve it."; exit 1; }
+          if git diff --exit-code; then
+            echo "No changes detected after merge. Skipping commit."
+            exit 0
+          else
+            git commit -m "Merged '${{ inputs.target-branch }}' into '${{ steps.set-push-branch.outputs.push-branch }}' via GitHub Actions"
+          fi
 
       - name: Configure Git Authentication with Custom Token
         if: ${{ steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
