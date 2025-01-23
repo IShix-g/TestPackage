@@ -30,15 +30,6 @@ jobs:
   merge-and-push:
     runs-on: ubuntu-22.04
     steps:
-      - name: Set Default Push Branch if Empty
-        id: set-default-branch
-        run: |
-          if [ -z "${{ inputs.push-branch }}" ]; then
-            echo "push-branch=$(gh api /repos/owner/repo --jq '.default_branch')" >> "$GITHUB_OUTPUT"
-          else
-            echo "push-branch=${{ inputs.push-branch }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Check secrets availability
         id: check-secrets
         run: |
@@ -53,6 +44,17 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      - name: Set Default Push Branch if Empty
+        id: set-default-branch
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "${{ inputs.push-branch }}" ]; then
+            echo "push-branch=$(gh api /repos/owner/repo --jq '.default_branch')" >> "$GITHUB_OUTPUT"
+          else
+            echo "push-branch=${{ inputs.push-branch }}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Checkout Repository and Target Branch
         uses: actions/checkout@v4
