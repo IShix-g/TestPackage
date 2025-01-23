@@ -110,7 +110,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git merge origin/${{ inputs.target-branch }} || { echo "::error::A conflict occurred during the merge. Please resolve it."; exit 1; }
           if git diff --exit-code; then
-            echo "No changes detected after merge. Skipping commit."
+            echo "::notice::No changes detected after merge. Skipping commit."
             exit 0
           else
             git commit -m "Merged '${{ inputs.target-branch }}' into '${{ steps.set-push-branch.outputs.push-branch }}' via GitHub Actions"
@@ -129,3 +129,4 @@ jobs:
           set -e
           git push origin ${{ steps.set-push-branch.outputs.push-branch }}
           echo "has-merged=true" >> "$GITHUB_OUTPUT"
+          echo "Merged: ${{ inputs.target-branch }} -> "
