@@ -46,40 +46,44 @@ jobs:
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
 
       - name: Set Default Push Branch if Empty
-        id: set-default-branch
+        id: set-push-branch
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "${{ inputs.push-branch }}" ]; then
             echo "push-branch=$(gh api /repos/owner/repo --jq '.default_branch')" >> "$GITHUB_OUTPUT"
+            echo "::notice::Set Default Push Branch: $push-branch"
           else
             echo "push-branch=${{ inputs.push-branch }}" >> "$GITHUB_OUTPUT"
+            echo "::notice::Set Default Push Branch: $push-branch"
           fi
 
       - name: Checkout Repository and Target Branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.set-branch.outputs.branch }}
+          ref: ${{ steps.set-push-branch.outputs.branch }}
           persist-credentials: false
 
-      - name: Fetch Target Branch (${ { inputs.target-branch } })
+      - name: Fetch Target Branch (${{ inputs.target-branch }})
         run: |
           set -e
           git fetch origin ${{ inputs.target-branch }}
 
-      - name: Checkout Push Branch (${ { steps.set-default-branch.outputs.push-branch } })
+      - name: Checkout Push Branch (${{ steps.set-push-branch.outputs.push-branch }})
         run: |
           set -e
-          git checkout ${{ steps.set-default-branch.outputs.push-branch }} || git checkout -b ${{ steps.set-default-branch.outputs.push-branch }}
+          git checkout ${{ steps.set-push-branch.outputs.push-branch }} || git checkout -b ${{ steps.set-push-branch.outputs.push-branch }}
 
       - name: Dry Run Merge
         if: ${{ inputs.dry-run }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
           echo "::notice::Dry-run mode is enabled. No merge will be performed."
           git merge --no-commit --no-ff origin/${{ inputs.target-branch }}
 
-      - name: Merge Target Branch (${{ inputs.target-branch }}) to Push Branch (${{ steps.set-default-branch.outputs.push-branch }})
+      - name: Merge Target Branch (${{ inputs.target-branch }}) to Push Branch (${{ steps.set-push-branch.outputs.push-branch }})
         if: ${{ inputs.dry-run == false }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
@@ -89,11 +93,11 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git merge origin/${{ inputs.target-branch }} || echo "::error::A conflict occurred during the merge. Please resolve it."
 
-      - name: Push to Branch (${{ steps.set-default-branch.outputs.push-branch }})
+      - name: Push to Branch (${{ steps.set-push-branch.outputs.push-branch }})
         if: ${{ inputs.dry-run == false }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          git push origin ${{ steps.set-default-branch.outputs.push-branch }}
+          git push origin ${{ steps.set-push-branch.outputs.push-branch }}
           echo "has-merged=true" >> "$GITHUB_OUTPUT"

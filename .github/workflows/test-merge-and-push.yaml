@@ -36,8 +36,8 @@ jobs:
             git checkout -b $target_branch
             echo "This is the target branch" > target-branch.txt
             git add target-branch.txt
-            git commit -m "Add target branch file"
-            git push origin $target_branch
+            git commit -m "Add target branch file" || { echo "Failed to create branch $target_branch"; exit 1; }
+            git push origin $target_branch || { echo "Failed to push branch $target_branch"; exit 1; }
           fi
 
       - name: Check and Create Push Branch
@@ -52,13 +52,10 @@ jobs:
           else
             git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
-            git checkout -b $push_branch
-            echo "This is the push branch" > push-branch.txt
-            git add push-branch.txt
-            git commit -m "Add push branch file"
-            git push origin $push_branch
+            git checkout -b $push_branch || { echo "Failed to create branch $push_branch"; exit 1; }
+            git push origin $push_branch || { echo "Failed to push branch $push_branch"; exit 1; }
           fi
-    
+
   merge-and-push:
     needs: [create-branches]
     uses: ./.github/workflows/reusable-merge-and-push.yaml
