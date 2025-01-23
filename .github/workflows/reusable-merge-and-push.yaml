@@ -68,31 +68,31 @@ jobs:
           push_branch_normalized=$(normalize_branch "${{ steps.set-push-branch.outputs.push-branch }}")
           if [ "$target_branch_normalized" = "$push_branch_normalized" ]; then
             echo "::notice::The push-branch and target-branch are the same after normalization. Exiting the workflow."
-            echo "branches-match=1 >> "$GITHUB_OUTPUT"
+            echo "identical=1" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
       - name: Checkout Repository and Target Branch
-        if: ${{ steps.branches-match.outputs.branches-match != '1' }}
+        if: ${{ steps.branches-match.outputs.identical != '1' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.set-push-branch.outputs.branch }}
           persist-credentials: false
 
       - name: Fetch Target Branch (${{ inputs.target-branch }})
-        if: ${{ steps.branches-match.outputs.branches-match != '1' }}
+        if: ${{ steps.branches-match.outputs.identical != '1' }}
         run: |
           set -e
           git fetch origin ${{ inputs.target-branch }}
 
       - name: Checkout Push Branch (${{ steps.set-push-branch.outputs.push-branch }})
-        if: ${{ steps.branches-match.outputs.branches-match != '1' }}
+        if: ${{ steps.branches-match.outputs.identical != '1' }}
         run: |
           set -e
           git checkout ${{ steps.set-push-branch.outputs.push-branch }} || git checkout -b ${{ steps.set-push-branch.outputs.push-branch }}
 
       - name: Dry Run Merge
-        if: ${{ steps.branches-match.outputs.branches-match != '1' && inputs.dry-run }}
+        if: ${{ steps.branches-match.outputs.identical != '1' && inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
@@ -101,7 +101,7 @@ jobs:
           git merge --no-commit --no-ff origin/${{ inputs.target-branch }}
 
       - name: Merge Target Branch (${{ inputs.target-branch }}) to Push Branch (${{ steps.set-push-branch.outputs.push-branch }})
-        if: ${{ steps.branches-match.outputs.branches-match != '1' && !inputs.dry-run }}
+        if: ${{ steps.branches-match.outputs.identical != '1' && !inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
@@ -112,12 +112,12 @@ jobs:
           git commit -m "Merged '${{ inputs.target-branch }}' into '${{ steps.set-push-branch.outputs.push-branch }}' via GitHub Actions"
 
       - name: Configure Git Authentication with Custom Token
-        if: ${{ steps.branches-match.outputs.branches-match != '1' && steps.check-secrets.outputs.available == '1' }}
+        if: ${{ steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
         run: |
           git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       - name: Push to Branch (${{ steps.set-push-branch.outputs.push-branch }})
-        if: ${{ steps.branches-match.outputs.branches-match != '1' && !inputs.dry-run }}
+        if: ${{ steps.branches-match.outputs.identical != '1' && !inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
