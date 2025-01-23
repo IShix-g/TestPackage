@@ -144,7 +144,7 @@ jobs:
           elif [[ "${{ steps.check-update.outputs.changed }}" == "1" ]]; then
             git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git config --local user.name "github-actions[bot]"
-            git commit -m "${{ needs.commit-format.outputs.message }}" -m "Commit by [GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" -a
+            git commit -m "${{ steps.commit-format.outputs.message }}" -m "Commit by [GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" -a
             echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
           else
             echo "sha=$(git rev-parse HEAD)" | tee -a "$GITHUB_OUTPUT"
