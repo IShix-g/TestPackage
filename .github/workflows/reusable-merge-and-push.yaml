@@ -58,38 +58,62 @@ jobs:
             echo "::notice::Set Default Push Branch: $push-branch"
           fi
 
-      - name: Check and Exit if Branches Match
-        id: branches-match
+      - name: Normalize Branch Names
+        id: normalize-branches
         run: |
           normalize_branch() {
             echo "$1" | sed 's|^refs/heads/||'
           }
           target_branch_normalized=$(normalize_branch "${{ inputs.target-branch }}")
           push_branch_normalized=$(normalize_branch "${{ steps.set-push-branch.outputs.push-branch }}")
-          if [ "$target_branch_normalized" = "$push_branch_normalized" ]; then
-            echo "::notice::The push-branch and target-branch are the same after normalization. Exiting the workflow."
-            echo "identical=1" >> "$GITHUB_OUTPUT"
-            exit 0
+
+          echo "target-branch=${target_branch_normalized}" >> "$GITHUB_OUTPUT"
+          echo "push-branch=${push_branch_normalized}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Target branch normalized: $target_branch_normalized"
+          echo "::notice::Push branch normalized: $push_branch_normalized"
+
+      - name: Check and Exit if Branches Match
+        id: branches-match
+        run: |
+          if [ "${{ steps.normalize-branches.outputs.target-branch }}" = "${{ steps.normalize-branches.outputs.push-branch }}" ]; then
+          echo "::notice::The push-branch and target-branch are the same after normalization. Exiting the workflow."
+          echo "identical=1" >> "$GITHUB_OUTPUT"
+          exit 0
           fi
 
       - name: Checkout Repository and Target Branch
         if: ${{ steps.branches-match.outputs.identical != '1' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.set-push-branch.outputs.branch }}
+          ref: ${{ steps.normalize-branches.outputs.push-branch }}
           persist-credentials: false
+
+      - name: Verify Branch Existence on Repository
+        id: verify-branches
+        run: |
+          set -e
+
+          REMOTE=origin
+
+          if git ls-remote --heads $REMOTE ${steps.normalize-branches.outputs.target-branch} | grep -q ${steps.normalize-branches.outputs.target-branch}; then
+            echo "::notice::Target branch '${steps.normalize-branches.outputs.target-branch}' exists on the remote repository."
+          else
+            echo "::error::Target branch '${steps.normalize-branches.outputs.target-branch}' does not exist on the remote repository."
+            exit 1
+          fi
+
+          if git ls-remote --heads $REMOTE ${steps.normalize-branches.outputs.push-branch} | grep -q ${steps.normalize-branches.outputs.push-branch}; then
+            echo "::notice::Push branch '${steps.normalize-branches.outputs.push-branch}' exists on the remote repository."
+          else
+            echo "::error::Push branch '${steps.normalize-branches.outputs.push-branch}' does not exist on the remote repository."
+            exit 1
+          fi
 
       - name: Fetch Target Branch (${{ inputs.target-branch }})
         if: ${{ steps.branches-match.outputs.identical != '1' }}
         run: |
           set -e
-          git fetch origin ${{ inputs.target-branch }}
-
-      - name: Checkout Push Branch (${{ steps.set-push-branch.outputs.push-branch }})
-        if: ${{ steps.branches-match.outputs.identical != '1' }}
-        run: |
-          set -e
-          git checkout ${{ steps.set-push-branch.outputs.push-branch }} || git checkout -b ${{ steps.set-push-branch.outputs.push-branch }}
+          git fetch origin ${{ steps.normalize-branches.outputs.target-branch }}
 
       - name: Dry Run Merge
         if: ${{ steps.branches-match.outputs.identical != '1' && inputs.dry-run }}
@@ -98,9 +122,9 @@ jobs:
         run: |
           set -e
           echo "::notice::Dry-run mode is enabled. No merge will be performed."
-          git merge --no-commit --no-ff origin/${{ inputs.target-branch }}
+          git merge --no-commit --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }}
 
-      - name: Merge Target Branch (${{ inputs.target-branch }}) to Push Branch (${{ steps.set-push-branch.outputs.push-branch }})
+      - name: Merge Target Branch (${{ steps.normalize-branches.outputs.target-branch }}) to Push Branch (${{ steps.normalize-branches.outputs.push-branch }})
         if: ${{ steps.branches-match.outputs.identical != '1' && !inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
@@ -108,12 +132,12 @@ jobs:
           set -e
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git merge origin/${{ inputs.target-branch }} || { echo "::error::A conflict occurred during the merge. Please resolve it."; exit 1; }
+          git merge origin/${{ steps.normalize-branches.outputs.target-branch }} || { echo "::error::A conflict occurred during the merge. Please resolve it."; exit 1; }
           if git diff --exit-code; then
             echo "::notice::No changes detected after merge. Skipping commit."
             exit 0
           else
-            git commit -m "Merged '${{ inputs.target-branch }}' into '${{ steps.set-push-branch.outputs.push-branch }}' via GitHub Actions"
+            git commit -m "Merged '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}' via GitHub Actions"
           fi
 
       - name: Configure Git Authentication with Custom Token
@@ -127,6 +151,6 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          git push origin ${{ steps.set-push-branch.outputs.push-branch }}
+          git push origin ${{ steps.normalize-branches.outputs.push-branch }}
           echo "has-merged=true" >> "$GITHUB_OUTPUT"
-          echo "Merged: ${{ inputs.target-branch }} -> "
+          echo "Merged: ${{ steps.normalize-branches.outputs.target-branch }} -> "
