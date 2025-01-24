@@ -90,6 +90,7 @@ jobs:
 
       - name: Verify Branch Existence on Repository
         id: verify-branches
+        if: ${{ steps.branches-match.outputs.identical != '1' }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
