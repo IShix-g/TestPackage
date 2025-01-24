@@ -135,7 +135,25 @@ jobs:
           set -e
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git merge origin/${{ steps.normalize-branches.outputs.target-branch }} || { echo "::error::A conflict occurred during the merge. Please resolve it."; exit 1; }
+          git merge origin/${{ steps.normalize-branches.outputs.target-branch }} || {
+            echo "::error::Merge failed. Retrieving error details..."
+            echo "Git Status:"
+            git status
+            
+            echo "Last Commit Log:"
+            git log -1
+            
+            echo "Available branches:"
+            git branch -a
+
+            if git status | grep -q "CONFLICT"; then
+              echo "::error::Merge failed due to conflicts. Please resolve them manually."
+              else
+              echo "::error::Merge failed due to an unknown issue. Please check the environment or branch state."
+            fi
+            
+            exit 1
+          }
           if git diff --exit-code; then
             echo "::notice::No changes detected after merge. Skipping commit."
             exit 0
