@@ -152,7 +152,7 @@ jobs:
       - name: Get Current Commit SHA
         id: set-sha
         run: |
-          if [ -n "${{ inputs.commit-id }}" ] && [ "${{ steps.merge-branch.fast-forward }}" != "1" ]; then
+          if [ -n "${{ inputs.commit-id }}" ] && [ "${{ steps.merge-branch.outputs.fast-forward }}" == "1" ]; then
             echo "sha=${{ inputs.commit-id }}" >> "$GITHUB_OUTPUT"
           else
             echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
