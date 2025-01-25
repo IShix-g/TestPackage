@@ -90,7 +90,7 @@ jobs:
         if: ${{ steps.branches-match.outputs.identical != '1' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit-id || steps.normalize-branches.outputs.push-branch }}
+          ref: ${{ steps.normalize-branches.outputs.push-branch }}
           persist-credentials: false
           fetch-depth: 0
 
@@ -98,7 +98,7 @@ jobs:
         if: ${{ steps.branches-match.outputs.identical != '1' }}
         run: |
           set -e
-          git fetch origin ${{ steps.normalize-branches.outputs.target-branch }}
+          git fetch origin ${{ inputs.commit-id || steps.normalize-branches.outputs.target-branch }}
 
       - name: Dry Run Merge
         if: ${{ steps.branches-match.outputs.identical != '1' && inputs.dry-run }}
