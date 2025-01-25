@@ -54,7 +54,7 @@ jobs:
     with:
       commit-id: ${{ needs.merge-and-push.outputs.sha }}
       dry-run: ${{ inputs.dry-run }}
-      tag: ${{ needs.update-packagejson.outputs.normalized-tag }}
+      tag: ${{ inputs.tag }}
       release-note: ${{ needs.release-notes.outputs.notes }}
 
   clean-packagejson-branch:

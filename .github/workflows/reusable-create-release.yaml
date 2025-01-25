@@ -89,20 +89,20 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
-          git tag ${{ inputs.tag }}
-          git push origin ${{ inputs.tag }}
+          git tag ${{ needs.validate.outputs.normalized-tag }}
+          git push origin ${{ needs.validate.outputs.normalized-tag }}
 
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ inputs.tag }} $([[ "${{ inputs.dry-run || inputs.draft-release }}" = "true" ]] && echo "--draft") \
+          gh release create ${{ needs.validate.outputs.normalized-tag }} $([[ "${{ inputs.dry-run || inputs.draft-release }}" = "true" ]] && echo "--draft") \
             --verify-tag \
-            --title "${{ format(inputs.release-format, inputs.tag) }}" \
+            --title "${{ format(inputs.release-format, needs.validate.outputs.normalized-tag) }}" \
             --generate-notes \
             --notes "${{ inputs.release-note }}"
 
-          echo "::notice::Release '${{ inputs.tag }}' has been successfully created!"
+          echo "::notice::Release '${{ needs.validate.outputs.normalized-tag }}' has been successfully created!"
 
       - name: Wait and Verify Release Name is expected
         if: ${{ success() }}
@@ -110,8 +110,8 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           sleep 5s
-          actual=$(gh api --paginate /repos/${{ github.repository }}/releases?per_page=100 --jq '.[] | select(.tag_name == "${{ inputs.tag }}") | .name')
-          expected="${{ format(inputs.release-format, inputs.tag) }}"
+          actual=$(gh api --paginate /repos/${{ github.repository }}/releases?per_page=100 --jq '.[] | select(.tag_name == "${{ needs.validate.outputs.normalized-tag }}") | .name')
+          expected="${{ format(inputs.release-format, needs.validate.outputs.normalized-tag) }}"
           if [[ "$actual" != "$expected" ]]; then
             echo "::error::Error: The release name does not match the expected value. Expected: '$expected', Actual: '$actual'."
             exit 1
@@ -124,17 +124,17 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
-          if gh release list | grep Draft | grep ${{ inputs.tag }}; then
-            echo "::notice::Release '${{ inputs.tag }}' found. Waiting ${{ inputs.wait-before-delete }} seconds before initiating deletion..."
+          if gh release list | grep Draft | grep ${{ needs.validate.outputs.normalized-tag }}; then
+            echo "::notice::Release '${{ needs.validate.outputs.normalized-tag }}' found. Waiting ${{ inputs.wait-before-delete }} seconds before initiating deletion..."
             sleep ${{ inputs.wait-before-delete }}
-            if gh release list | grep Draft | grep ${{ inputs.tag }}; then
-              gh release delete ${{ inputs.tag }} --yes --cleanup-tag
-              echo "::notice::Release '${{ inputs.tag }}' successfully deleted."
+            if gh release list | grep Draft | grep ${{ needs.validate.outputs.normalized-tag }}; then
+              gh release delete ${{ needs.validate.outputs.normalized-tag }} --yes --cleanup-tag
+              echo "::notice::Release '${{ needs.validate.outputs.normalized-tag }}' successfully deleted."
             else
-              echo "::notice::Release '${{ inputs.tag }}' no longer exists. Skipping deletion."
+              echo "::notice::Release '${{ needs.validate.outputs.normalized-tag }}' no longer exists. Skipping deletion."
             fi
           else
-            echo "::warning::Release '${{ inputs.tag }}' does not exist. Skipping cleanup."
+            echo "::warning::Release '${{ needs.validate.outputs.normalized-tag }}' does not exist. Skipping cleanup."
           fi
 
       - name: Clean up release after failure
@@ -142,9 +142,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
-          if gh release list | grep Draft | grep ${{ inputs.tag }}; then
+          if gh release list | grep Draft | grep ${{ needs.validate.outputs.normalized-tag }}; then
             echo "::notice::Detected failure. Skipping wait and proceeding to deletion."
-            gh release delete ${{ inputs.tag }} --yes --cleanup-tag
+            gh release delete ${{ needs.validate.outputs.normalized-tag }} --yes --cleanup-tag
           else
-            echo "::notice::Release '${{ inputs.tag }}' does not exist. Skipping cleanup."
+            echo "::notice::Release '${{ needs.validate.outputs.normalized-tag }}' does not exist. Skipping cleanup."
           fi
