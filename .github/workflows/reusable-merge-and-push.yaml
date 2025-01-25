@@ -88,30 +88,6 @@ jobs:
           ref: ${{ steps.normalize-branches.outputs.push-branch }}
           persist-credentials: false
 
-      - name: Verify Branch Existence on Repository
-        id: verify-branches
-        if: ${{ steps.branches-match.outputs.identical != '1' }}
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
-        run: |
-          set -e
-
-          REMOTE=origin
-
-          if git ls-remote --heads $REMOTE ${{ steps.normalize-branches.outputs.target-branch }} | grep -q ${{ steps.normalize-branches.outputs.target-branch }}; then
-            echo "::notice::Target branch '${{ steps.normalize-branches.outputs.target-branch }}' exists on the remote repository."
-          else
-            echo "::error::Target branch '${{ steps.normalize-branches.outputs.target-branch }}' does not exist on the remote repository."
-            exit 1
-          fi
-
-          if git ls-remote --heads $REMOTE ${{ steps.normalize-branches.outputs.push-branch }} | grep -q ${{ steps.normalize-branches.outputs.push-branch }}; then
-            echo "::notice::Push branch '${{ steps.normalize-branches.outputs.push-branch }}' exists on the remote repository."
-          else
-            echo "::error::Push branch '${{ steps.normalize-branches.outputs.push-branch }}' does not exist on the remote repository."
-            exit 1
-          fi
-
       - name: Fetch Target Branch (${{ steps.normalize-branches.outputs.target-branch }})
         if: ${{ steps.branches-match.outputs.identical != '1' }}
         run: |
