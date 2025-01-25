@@ -2,7 +2,7 @@
   "name": "com.ishix.test.simplepackage",
   "displayName": "Test simple pakage",
   "description": "Test simple pakage",
-  "version": "1.0.59",
+  "version": "1.0.60",
   "unity": "2021.3",
   "dependencies": {},
   "relatedPackages": {},
