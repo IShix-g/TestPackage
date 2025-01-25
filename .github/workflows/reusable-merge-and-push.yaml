@@ -92,6 +92,7 @@ jobs:
         with:
           ref: ${{ inputs.commit-id || steps.normalize-branches.outputs.push-branch }}
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Fetch Target Branch (${{ steps.normalize-branches.outputs.target-branch }})
         if: ${{ steps.branches-match.outputs.identical != '1' }}
