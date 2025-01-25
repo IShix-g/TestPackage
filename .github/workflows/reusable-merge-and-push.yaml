@@ -162,7 +162,12 @@ jobs:
           git push origin ${{ steps.normalize-branches.outputs.push-branch }}
           echo "has-merged=1" >> "$GITHUB_OUTPUT"
           echo "::notice::Merged: ${{ steps.normalize-branches.outputs.target-branch }} -> ${{ steps.normalize-branches.outputs.push-branch }}"
-
+          
       - name: Get Current Commit SHA
         id: set-sha
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ -n "${{ inputs.commit-id }}" ]; then
+            echo "sha=${{ inputs.commit-id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          fi
