@@ -130,11 +130,7 @@ jobs:
             
             exit 1
           }
-          if git diff --exit-code; then
-            echo "::notice::No changes detected after merge. Skipping commit."
-          else
-            git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
-          fi
+          git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
 
       - name: Check update on git
         id: check-update
@@ -150,7 +146,8 @@ jobs:
       - name: Get Current Commit SHA
         id: set-sha
         run: |
-          if [ -n "${{ inputs.commit-id }}" ] && [ "${{ steps.check-update.outputs.changed }}" != "1" ]; then
+          if ([ -n "${{ inputs.commit-id }}" ] && [ "${{ steps.branches-match.outputs.identical }}" == "1" ]) \
+              || ([ -n "${{ inputs.commit-id }}" ] && [ "${{ steps.check-update.outputs.changed }}" != "1" ]); then
             echo "sha=${{ inputs.commit-id }}" >> "$GITHUB_OUTPUT"
           else
             echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
