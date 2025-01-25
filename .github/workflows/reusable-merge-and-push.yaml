@@ -139,7 +139,14 @@ jobs:
 
       - name: Check update on git
         id: check-update
-        run: git diff --exit-code || echo "changed=1" | tee -a "$GITHUB_OUTPUT"
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
+          if git diff HEAD^1 HEAD --exit-code; then
+            echo "::notice::No changes detected after merge."
+          else
+            echo "changed=1" >> "$GITHUB_OUTPUT"
+            echo "::notice::Changes detected after merge."
+          fi
 
       - name: Configure Git Authentication with Custom Token
         if: ${{ steps.check-update.outputs.changed == '1' && steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
