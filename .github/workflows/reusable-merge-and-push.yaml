@@ -117,7 +117,7 @@ jobs:
           set -e
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git merge origin/${{ steps.normalize-branches.outputs.target-branch }} || {
+          git merge --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }} || {
             echo "::error::Merge failed. Retrieving error details..."
             echo "Git Status:"
             git status
