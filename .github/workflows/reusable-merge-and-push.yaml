@@ -16,6 +16,7 @@ on:
         description: 'Commit ID to create a release and tag.'
         required: false
         type: string
+        default: ''
       dry-run:
         description: 'Dry-run mode (simulate without committing)'
         type: boolean
