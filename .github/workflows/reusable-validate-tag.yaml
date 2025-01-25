@@ -19,13 +19,13 @@ on:
         type: string
     outputs:
       normalized-tag:
-        description: normalized tag, tag without v prefix.
+        description: 'normalized tag, tag without v prefix.'
         value: ${{ jobs.validate.outputs.normalized-tag }}
       tag:
-        description: same as input tag
+        description: 'same as input tag'
         value: ${{ jobs.validate.outputs.tag }}
       validated:
-        description: result of the validation is validated or not
+        description: 'result of the validation is validated or not'
         value: ${{ jobs.validate.outputs.validated }}
 
 permissions:

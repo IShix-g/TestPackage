@@ -33,7 +33,7 @@ jobs:
     uses: ./.github/workflows/reusable-release-notes.yaml
     with:
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
-      to-tag: ${{ needs.update-packagejson.outputs.normalized_tag }}
+      to-tag: ${{ needs.update-packagejson.outputs.normalized-tag }}
 
   merge-and-push:
     needs: [update-packagejson, release-notes]
@@ -55,7 +55,7 @@ jobs:
     with:
       commit-id: ${{ needs.merge-and-push.outputs.sha }}
       dry-run: ${{ inputs.dry-run }}
-      tag: ${{ inputs.tag }}
+      tag: ${{ needs.update-packagejson.outputs.normalized-tag }}
       release-note: ${{ needs.release-notes.outputs.notes }}
 
   clean-packagejson-branch:

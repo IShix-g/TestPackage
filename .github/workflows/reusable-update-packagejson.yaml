@@ -36,6 +36,9 @@ on:
       BOT_PRIVATE_KEY:
         required: false
     outputs:
+      normalized-tag:
+        description: 'normalized tag, tag without v prefix.'
+        value: ${{ jobs.validate-tag.outputs.normalized-tag }}
       sha:
         description: 'Git commit SHA after package.json is updated.'
         value: ${{ jobs.update-packagejson.outputs.sha }}
