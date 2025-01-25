@@ -165,9 +165,4 @@ jobs:
 
       - name: Get Current Commit SHA
         id: set-sha
-        run: |
-          if [ -n "${{ inputs.commit-id }}" ]; then
-            echo "sha=${{ inputs.commit-id }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
