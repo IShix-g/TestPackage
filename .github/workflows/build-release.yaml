@@ -34,8 +34,20 @@ jobs:
     with:
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
 
-  merge-and-push:
+  create-release:
     needs: [update-packagejson, release-notes]
+    uses: ./.github/workflows/reusable-create-release.yaml
+    secrets:
+      BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
+      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
+    with:
+      commit-id: ${{ needs.update-packagejson.outputs.sha }}
+      dry-run: ${{ inputs.dry-run }}
+      tag: ${{ inputs.tag }}
+      release-note: ${{ needs.release-notes.outputs.notes }}
+
+  merge-and-push:
+    needs: [update-packagejson, release-notes, create-release]
     uses: ./.github/workflows/reusable-merge-and-push.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
@@ -44,18 +56,6 @@ jobs:
       target-branch: ${{ github.ref }}
       push-branch: ${{ github.event.repository.default_branch }}
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
-
-  create-release:
-    needs: [update-packagejson, release-notes, merge-and-push]
-    uses: ./.github/workflows/reusable-create-release.yaml
-    secrets:
-      BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
-      BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
-    with:
-      commit-id: ${{ needs.merge-and-push.outputs.sha }}
-      dry-run: ${{ inputs.dry-run }}
-      tag: ${{ inputs.tag }}
-      release-note: ${{ needs.release-notes.outputs.notes }}
 
   clean-packagejson-branch:
     needs: [update-packagejson]
