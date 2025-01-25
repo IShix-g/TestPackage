@@ -55,7 +55,8 @@ jobs:
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
     with:
       target-branch: ${{ github.ref }}
-      push-branch: ${{ needs.update-packagejson.outputs.sha }}
+      push-branch: ${{ github.event.repository.default_branch }}
+      commit-id: ${{ needs.update-packagejson.outputs.sha }}
 
   clean-packagejson-branch:
     needs: [update-packagejson]

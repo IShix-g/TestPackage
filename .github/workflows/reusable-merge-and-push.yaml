@@ -12,6 +12,10 @@ on:
         required: false
         type: string
         default: ''
+      commit-id:
+        description: 'Commit ID to create a release and tag.'
+        required: false
+        type: string
       dry-run:
         description: 'Dry-run mode (simulate without committing)'
         type: boolean
@@ -85,7 +89,7 @@ jobs:
         if: ${{ steps.branches-match.outputs.identical != '1' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.normalize-branches.outputs.push-branch }}
+          ref: ${{ inputs.commit-id || steps.normalize-branches.outputs.push-branch }}
           persist-credentials: false
 
       - name: Fetch Target Branch (${{ steps.normalize-branches.outputs.target-branch }})
@@ -131,10 +135,17 @@ jobs:
             git commit -m "Merged '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}' via GitHub Actions"
           fi
 
+      - name: Configure Git Authentication with Custom Token
+        if: ${{ steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
+
       - name: Push to Branch (${{ steps.set-push-branch.outputs.push-branch }})
         if: ${{ steps.branches-match.outputs.identical != '1' && !inputs.dry-run }}
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.normalize-branches.outputs.push-branch }}
-          tags: false
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git push origin ${{ steps.normalize-branches.outputs.push-branch }}
+          echo "has-merged=true" >> "$GITHUB_OUTPUT"
+          echo "Merged: ${{ steps.normalize-branches.outputs.target-branch }} -> ${{ steps.normalize-branches.outputs.push-branch }}"
