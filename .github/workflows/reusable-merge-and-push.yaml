@@ -117,7 +117,7 @@ jobs:
           set -e
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git merge --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }} || {
+          git merge --no-commit --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }} || {
             echo "::error::Merge failed. Retrieving error details..."
             echo "Git Status:"
             git status
@@ -130,6 +130,11 @@ jobs:
             
             exit 1
           }
+          if git diff --exit-code; then
+            echo "::notice::No changes detected after merge. Skipping commit."
+          else
+            git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
+          fi
 
       - name: Check update on git
         id: check-update
@@ -145,7 +150,7 @@ jobs:
       - name: Get Current Commit SHA
         id: set-sha
         run: |
-          if [ -n "${{ inputs.commit-id }}" ] && [ "${{ steps.merge-branch.outputs.fast-forward }}" == "1" ]; then
+          if [ -n "${{ inputs.commit-id }}" ] && [ "${{ steps.check-update.outputs.changed }}" != "1" ]; then
             echo "sha=${{ inputs.commit-id }}" >> "$GITHUB_OUTPUT"
           else
             echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
