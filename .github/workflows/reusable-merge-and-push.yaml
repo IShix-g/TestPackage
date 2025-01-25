@@ -130,12 +130,6 @@ jobs:
             
             exit 1
           }
-          if git diff --exit-code; then
-            echo "::notice::No changes detected after merge. Skipping commit."
-            echo "fast-forward=1" >> "$GITHUB_OUTPUT"
-          else
-            git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
-          fi
 
       - name: Check update on git
         id: check-update
