@@ -137,17 +137,27 @@ jobs:
             git commit -m "Merged '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}' via GitHub Actions"
           fi
 
+      - name: Check update on git
+        id: check-update
+        run: git diff --exit-code || echo "changed=1" | tee -a "$GITHUB_OUTPUT"
+
       - name: Configure Git Authentication with Custom Token
-        if: ${{ steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
+        if: ${{ steps.check-update.outputs.changed == '1' && steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
         run: |
           git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
+      - name: Debug Local Git Status
+        run: |
+          git status
+          git branch -a
+
       - name: Push to Branch (${{ steps.set-push-branch.outputs.push-branch }})
-        if: ${{ steps.branches-match.outputs.identical != '1' && !inputs.dry-run }}
+        if: ${{ steps.check-update.outputs.changed == '1' && steps.branches-match.outputs.identical != '1' && !inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
+          git fetch origin
           git push origin ${{ steps.normalize-branches.outputs.push-branch }}
-          echo "has-merged=true" >> "$GITHUB_OUTPUT"
-          echo "Merged: ${{ steps.normalize-branches.outputs.target-branch }} -> ${{ steps.normalize-branches.outputs.push-branch }}"
+          echo "has-merged=1" >> "$GITHUB_OUTPUT"
+          echo "::notice::Merged: ${{ steps.normalize-branches.outputs.target-branch }} -> ${{ steps.normalize-branches.outputs.push-branch }}"
