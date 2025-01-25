@@ -145,12 +145,6 @@ jobs:
             
             echo "Available branches:"
             git branch -a
-
-            if git status | grep -q "CONFLICT"; then
-              echo "::error::Merge failed due to conflicts. Please resolve them manually."
-              else
-              echo "::error::Merge failed due to an unknown issue. Please check the environment or branch state."
-            fi
             
             exit 1
           }
