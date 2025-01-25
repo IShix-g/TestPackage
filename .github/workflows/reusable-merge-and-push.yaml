@@ -137,11 +137,6 @@ jobs:
             git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
           fi
 
-      - name: Configure Git Authentication with Custom Token
-        if: ${{ steps.check-update.outputs.changed == '1' && steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
-        run: |
-          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
-
       - name: Check update on git
         id: check-update
         if: ${{ steps.branches-match.outputs.identical != '1' }}
@@ -161,6 +156,11 @@ jobs:
           else
             echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Configure Git Authentication with Custom Token
+        if: ${{ steps.check-update.outputs.changed == '1' && steps.branches-match.outputs.identical != '1' && steps.check-secrets.outputs.available == '1' }}
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       - name: Push to Branch (${{ steps.set-push-branch.outputs.push-branch }})
         if: ${{ steps.check-update.outputs.changed == '1' && steps.branches-match.outputs.identical != '1' && !inputs.dry-run }}
