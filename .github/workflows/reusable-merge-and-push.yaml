@@ -121,22 +121,25 @@ jobs:
           CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
           if git log ${CURRENT_BRANCH}..${MERGE_TARGET} --oneline | grep -q .; then
-          echo "Changes detected. Proceeding with merge..."
-
-          git merge --no-commit --no-ff -X theirs $MERGE_TARGET || {
-            echo "::error::Merge failed. Retrieving error details..."
-            echo "Git Status:"
-            git status
-            
-            echo "Last Commit Log:"
-            git log -1
-            
-            echo "Available branches:"
-            git branch -a
-            
-            exit 1
-          }
-          git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
+            echo "Changes detected. Proceeding with merge..."
+  
+            git merge --no-commit --no-ff -X theirs $MERGE_TARGET || {
+              echo "::error::Merge failed. Retrieving error details..."
+              echo "Git Status:"
+              git status
+              
+              echo "Last Commit Log:"
+              git log -1
+              
+              echo "Available branches:"
+              git branch -a
+              
+              exit 1
+            }
+            git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
+          else
+            echo "No changes to merge. Skipping."
+          fi
 
       - name: Check update on git
         id: check-update
