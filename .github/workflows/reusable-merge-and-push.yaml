@@ -53,16 +53,12 @@ jobs:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
 
-      - name: Set Default Push Branch if Empty
+      - name: Set Default Push Branch
         id: set-push-branch
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "${{ inputs.push-branch }}" ]; then
-            echo "push-branch=$(gh api /repos/owner/repo --jq '.default_branch')" >> "$GITHUB_OUTPUT"
-          else
-            echo "push-branch=${{ inputs.push-branch }}" >> "$GITHUB_OUTPUT"
-          fi
+          echo "push-branch=${{ inputs.push-branch || github.event.repository.default_branch }}" >> "$GITHUB_OUTPUT"
 
       - name: Normalize Branch Names
         id: normalize-branches
@@ -80,7 +76,7 @@ jobs:
         id: branches-match
         run: |
           if [ "${{ steps.normalize-branches.outputs.target-branch }}" = "${{ steps.normalize-branches.outputs.push-branch }}" ]; then
-          echo "::notice::The push-branch and target-branch are the same after normalization. Exiting the workflow."
+          echo "::notice::The push-branch and target-branch are the same after normalization. Exiting the workflow early because merge is unnecessary."
           echo "identical=1" >> "$GITHUB_OUTPUT"
           exit 0
           fi
@@ -93,7 +89,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Fetch Target Branch (${{ steps.normalize-branches.outputs.target-branch }})
+      - name: Fetch and prepare Target Branch (${{ steps.normalize-branches.outputs.target-branch }})
         if: ${{ steps.branches-match.outputs.identical != '1' }}
         run: |
           set -e
@@ -117,7 +113,7 @@ jobs:
           set -e
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git merge --no-commit --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }} || {
+          git merge --no-commit --no-ff -X origin/${{ steps.normalize-branches.outputs.target-branch }} || {
             echo "::error::Merge failed. Retrieving error details..."
             echo "Git Status:"
             git status
