@@ -111,9 +111,17 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
+          # ユーザ情報の設定
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git merge --no-commit --no-ff -X origin/${{ steps.normalize-branches.outputs.target-branch }} || {
+          # マージ対象のブランチを取得
+          MERGE_TARGET="origin/${{ steps.normalize-branches.outputs.target-branch }}"
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          # 差分の確認
+          if git log ${CURRENT_BRANCH}..${MERGE_TARGET} --oneline | grep -q .; then
+          echo "Changes detected. Proceeding with merge..."
+
+          git merge --no-commit --no-ff -X theirs $MERGE_TARGET || {
             echo "::error::Merge failed. Retrieving error details..."
             echo "Git Status:"
             git status
@@ -127,6 +135,10 @@ jobs:
             exit 1
           }
           git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
+          
+          else
+          echo "No changes to merge. Skipping."
+          fi
 
       - name: Check update on git
         id: check-update
