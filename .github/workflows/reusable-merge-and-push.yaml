@@ -19,12 +19,6 @@ on:
         default: ''
       dry-run:
         description: 'Dry-run mode (simulate without committing)'
-        required: false
-        type: boolean
-        default: false
-      allow-fast-forward:
-        description: 'Allow fast-forward merge (true or false)'
-        required: false
         type: boolean
         default: false
     secrets:
@@ -121,39 +115,23 @@ jobs:
           set -e
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-
           merge_target="origin/${{ steps.normalize-branches.outputs.target-branch }}"
           current_branch=$(git rev-parse --abbrev-ref HEAD)
-
-          allow_fast_forward=${{ inputs.allow-fast-forward }}
-
-          echo "Target merge branch: $merge_target"
-          echo "Current branch: $current_branch"
-          echo "Allow Fast-Forward: $allow_fast_forward"
-
+          
           if git log ${current_branch}..${merge_target} --oneline | grep -q .; then
             echo "Changes detected. Proceeding with merge..."
 
-            if [[ "$allow_fast_forward" == "true" ]]; then
-              if git merge --ff-only $merge_target; then
-                echo "Fast-Forward merge completed successfully."
-                exit 0
-              else
-                echo "Fast-Forward merge not possible. Proceeding with regular merge..."
-              fi
-            fi
-
-            git merge --no-commit $merge_target || {
+            git merge --no-commit --no-ff $merge_target || {
               echo "::error::Merge failed. Retrieving error details..."
               echo "Git Status:"
               git status
 
               echo "Last Commit Log:"
               git log -1
-
+          
               echo "Available branches:"
               git branch -a
-
+          
               exit 1
             }
             git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
