@@ -113,27 +113,25 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
-
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-
-          MERGE_TARGET="origin/${{ steps.normalize-branches.outputs.target-branch }}"
-          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
-          if git log ${CURRENT_BRANCH}..${MERGE_TARGET} --oneline | grep -q .; then
+          merge_target="origin/${{ steps.normalize-branches.outputs.target-branch }}"
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          
+          if git log ${current_branch}..${merge_target} --oneline | grep -q .; then
             echo "Changes detected. Proceeding with merge..."
-  
-            git merge --no-commit --no-ff $MERGE_TARGET || {
+
+            git merge --no-commit --no-ff $merge_target || {
               echo "::error::Merge failed. Retrieving error details..."
               echo "Git Status:"
               git status
-              
+
               echo "Last Commit Log:"
               git log -1
-              
+          
               echo "Available branches:"
               git branch -a
-              
+          
               exit 1
             }
             git commit -m "Merge branch '${{ steps.normalize-branches.outputs.target-branch }}' into '${{ steps.normalize-branches.outputs.push-branch }}'"
