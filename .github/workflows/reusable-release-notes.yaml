@@ -129,6 +129,7 @@ jobs:
           echo "Fetching commit range:"
           echo "Start: ${{ steps.determine-range.outputs.from_commit }}"
           echo "End: ${{ steps.determine-range.outputs.to_commit }}"
+          echo "Format: ${{ inputs.commit-message-format }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
           IFS='|' read -r -a filter_conditions <<< "$FILTER_CONDITION"
