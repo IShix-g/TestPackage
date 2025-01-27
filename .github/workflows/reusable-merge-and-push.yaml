@@ -103,16 +103,27 @@ jobs:
           git fetch origin ${{ inputs.commit-id || steps.normalize-branches.outputs.target-branch }}
 
       - name: Dry Run Merge
+        id: dry-run-merge
         if: ${{ inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          echo "::notice::Dry-run mode is enabled. Simulating merge..."
-          git merge --no-commit --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }} > dry-run-log.txt 2>&1
+          git fetch origin
+          merge_log=$(git merge --no-commit --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }} 2>&1)
+
+          log_length=$(echo "$merge_log" | wc -c)
+      
+          if [ "$log_length" -ge 100 ]; then
+            echo "$merge_log" > dry-run-log.txt
+            echo "log-exists=1" >> "$GITHUB_OUTPUT"
+            echo "::notice::Merge log is too large. Saved to 'dry-run-log.txt'."
+          else
+            echo "$merge_log"
+          fi
 
       - name: Save Dry-Run Log
-        if: ${{ inputs.dry-run }}
+        if: ${{ inputs.dry-run && steps.dry-run-merge.outputs.log-exists == '1' }}
         uses: actions/upload-artifact@v4
         with:
           name: dry-run-log
