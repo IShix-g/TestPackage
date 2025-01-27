@@ -36,7 +36,7 @@ jobs:
     outputs:
       notes: ${{ steps.release-notes.outputs.notes }}
     env:
-      FILTER_CONDITION: 'fix|feat|docs|style|refactor|perf'
+      FILTER_CONDITION: 'feat|fix|docs|style|refactor|perf'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -131,22 +131,33 @@ jobs:
           echo "End: ${{ steps.determine-range.outputs.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
-          notes=$(
-            git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
-            --pretty=format:"${{ inputs.commit-message-format }}" \
-            | grep -iE "$FILTER_CONDITION" \
-            | grep -v "github-actions" \
-            || echo "No matching commits found."
-          )
-          length=$(echo "$notes" | wc -l)
-          echo "::notice::Release Note: $length items"
-          
+          IFS='|' read -r -a filter_conditions <<< "$FILTER_CONDITION"
+
+          sorted_notes=""
+
+          for condition in "${filter_conditions[@]}"; do
+            echo "Processing commits for condition: $condition"
+            filtered_notes=$(
+              git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
+              --pretty=format:"${{ inputs.commit-message-format }}" \
+              | grep -iE "^$condition" || echo ""
+            )
+            if [ ! -z "$filtered_notes" ]; then
+              sorted_notes="$sorted_notes"$'\n'"$filtered_notes"
+            fi
+          done
+
+          sorted_notes=$(echo "$sorted_notes" | sed '/^$/d')
+
+          length=$(echo "$sorted_notes" | wc -l)
+          echo "::notice::Release Notes: $length items"
+
           echo "::group::Notebook Contents"
-          echo "$notes"
+          echo "$sorted_notes"
           echo "::endgroup::"
-          
+
           {
             echo "notes<<EOF"
-            echo "$notes"
+            echo "$sorted_notes"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
