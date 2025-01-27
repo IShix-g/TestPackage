@@ -139,11 +139,18 @@ jobs:
 
           for condition in "${filter_conditions[@]}"; do
 
+            exclude_hashes=$(git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
+              --pretty=format:"%H" --committer="github-actions[bot]" || echo "")
+  
             filtered_notes=$(
               git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
-              --pretty=format:"${{ inputs.commit-message-format }}" \
-              | grep -iE "\b($condition)\s*:" \
-              || echo ""
+              --pretty=format:"${{ inputs.commit-message-format }}" | \
+              while read line; do
+                commit_hash=$(echo "$line" | awk '{print $NF}' | tr -d '()') # Extract the hash from the user format (if exists)
+                if [[ ! "$exclude_hashes" =~ "$commit_hash" ]]; then
+                  echo "$line"
+                fi
+              done | grep -iE "\b($condition)\s*:" || echo ""
             )
 
             if [ ! -z "$filtered_notes" ]; then
