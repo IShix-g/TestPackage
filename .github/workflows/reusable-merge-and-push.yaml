@@ -146,6 +146,18 @@ jobs:
           if git log ${current_branch}..${merge_target} --oneline | grep -q .; then
             echo "Changes detected. Proceeding with merge..."
 
+            if ! git merge --no-commit --no-ff --dry-run $merge_target; then
+              echo "::error::Merge conflict detected. Retrieving conflict details..."
+
+              echo "Conflicting files:"
+              git diff --name-only --diff-filter=U
+
+              echo "Conflict details:"
+              git diff --diff-filter=U
+
+              exit 1
+            fi
+
             git merge --no-commit --no-ff $merge_target || {
               echo "::error::Merge failed. Retrieving error details..."
               echo "Git Status:"
