@@ -146,16 +146,12 @@ jobs:
           if git log ${current_branch}..${merge_target} --oneline | grep -q .; then
             echo "Changes detected. Proceeding with merge..."
 
-            if ! git merge --no-commit --no-ff --dry-run $merge_target; then
-              echo "::error::Merge conflict detected. Retrieving conflict details..."
-
-              echo "Conflicting files:"
-              git diff --name-only --diff-filter=U
-
-              echo "Conflict details:"
-              git diff --diff-filter=U
-
-              exit 1
+            if [ "${{ inputs.fast-forward }}" == "true" ]; then
+              echo "::notice::Allowing Fast-Forward merge..."
+              git merge --ff-only $merge_target && {
+                echo "::notice::Fast-Forward merge completed successfully."
+                exit 0
+              } || echo "::notice::Fast-Forward not possible, falling back to regular merge."
             fi
 
             git merge --no-commit --no-ff $merge_target || {
