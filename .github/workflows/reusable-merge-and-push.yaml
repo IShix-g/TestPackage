@@ -147,11 +147,6 @@ jobs:
             echo "Changes detected. Proceeding with merge..."
 
             if ! git merge --no-commit --no-ff --dry-run $merge_target; then
-              echo "::error::Merge conflict detected. Please resolve conflicts manually."
-              exit 1
-            fi
-
-            if ! git merge --no-commit --no-ff --dry-run $merge_target; then
               echo "::error::Merge conflict detected. Retrieving conflict details..."
 
               echo "Conflicting files:"
