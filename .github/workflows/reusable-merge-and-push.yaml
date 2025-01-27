@@ -105,7 +105,7 @@ jobs:
           git fetch origin ${{ inputs.commit-id || steps.normalize-branches.outputs.target-branch }}
 
       - name: Dry Run Merge
-        if: ${{ steps.branches-match.outputs.identical != '1' && inputs.dry-run }}
+        if: ${{ inputs.dry-run }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
