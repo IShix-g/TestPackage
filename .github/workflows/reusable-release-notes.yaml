@@ -131,18 +131,17 @@ jobs:
           echo "End: ${{ steps.determine-range.outputs.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
-          echo "Splitting FILTER_CONDITION into array..."
           IFS='|' read -r -a filter_conditions <<< "$FILTER_CONDITION"
           echo "Conditions: ${filter_conditions[@]}"
 
           sorted_notes=""
 
           for condition in "${filter_conditions[@]}"; do
-            echo "Processing commits for condition: $condition"
 
             filtered_notes=$(
               git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
               --pretty=format:"%s" \
+              --author="^(?!github-actions\[bot\]).*" \
               | grep -iE "^\s*($condition)(:|\s)" || echo ""
             )
 

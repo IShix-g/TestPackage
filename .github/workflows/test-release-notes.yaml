@@ -41,5 +41,5 @@ jobs:
           echo "::notice::Release Note: $length items"
           IFS=$'\n'
           for line in $notes; do
-          echo $line
+            echo $line
           done
