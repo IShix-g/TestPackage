@@ -140,8 +140,8 @@ jobs:
 
             filtered_notes=$(
               git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
-              --pretty=format:"%s" \
-              | grep -v "github-actions\[bot\]" \
+              --pretty=format:"${{ inputs.commit-message-format }}" \
+              | awk -F'|' '$1 != "github-actions[bot]" {print $2}' \
               | grep -iE "^\s*($condition)(:|\s)" || echo ""
             )
 
