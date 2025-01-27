@@ -131,24 +131,34 @@ jobs:
           echo "End: ${{ steps.determine-range.outputs.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
+          # 動的にFILTER_CONDITIONを配列化
           IFS='|' read -r -a filter_conditions <<< "$FILTER_CONDITION"
 
+          # 並べ替えられた結果を格納する変数
           sorted_notes=""
 
           for condition in "${filter_conditions[@]}"; do
             echo "Processing commits for condition: $condition"
+
+            # 各条件でコミットメッセージを抽出
             filtered_notes=$(
               git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
               --pretty=format:"${{ inputs.commit-message-format }}" \
-              | grep -iE "^$condition" || echo ""
+              | grep -iE "^\s*$condition:" || echo ""
             )
+
+            # 結果が空でない場合のみ連結
             if [ ! -z "$filtered_notes" ]; then
               sorted_notes="$sorted_notes"$'\n'"$filtered_notes"
+            else
+              echo "No commits found for condition: $condition"
             fi
           done
 
+          # 空行を除去
           sorted_notes=$(echo "$sorted_notes" | sed '/^$/d')
 
+          # レポート
           length=$(echo "$sorted_notes" | wc -l)
           echo "::notice::Release Notes: $length items"
 
@@ -156,6 +166,7 @@ jobs:
           echo "$sorted_notes"
           echo "::endgroup::"
 
+          # GitHub Actions の出力にノートを保存
           {
             echo "notes<<EOF"
             echo "$sorted_notes"
