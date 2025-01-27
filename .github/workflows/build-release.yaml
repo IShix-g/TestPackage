@@ -20,8 +20,36 @@ on:
         type: boolean
         required: false
         default: false
+      confirm-action:
+        description: 'Do you want to continue if the branch is the default branch? (yes/no)'
+        required: true
+        default: no
+        type: choice
+        options:
+          - yes
+          - no
 
 jobs:
+  check-ref:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check if github.ref is default_branch
+        id: check-default-branch
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          if [ "${GITHUB_REF##*/}" = "${{ github.event.repository.default_branch }}" ]; then
+            echo "The current branch is the default branch (${GITHUB_REF##*/})."
+          else
+            echo "This is not the default branch."
+          fi
+
+      - name: Confirm action
+        if: ${{ inputs.confirm-action == 'no' && (github.ref == github.event.repository.default_branch) }}
+        run: |
+          echo "You selected not to proceed when on the default branch."
+          exit 1
+
   update-packagejson:
     uses: ./.github/workflows/reusable-update-packagejson.yaml
     secrets:
