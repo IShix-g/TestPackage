@@ -141,8 +141,9 @@ jobs:
 
             filtered_notes=$(
               git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
-              --pretty=format:"- %s by %cn (%h)" \
-              | grep -iE "^\s*[-\s]*($condition)(:|\s)" || echo ""
+              --pretty=format:"${{ inputs.commit-message-format }}" \
+              | grep -iE "\b($condition)\s*:" \
+              || echo ""
             )
 
             if [ ! -z "$filtered_notes" ]; then
