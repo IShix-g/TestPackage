@@ -91,7 +91,6 @@ jobs:
           fi
 
       - name: Checkout Repository and Target Branch
-        if: ${{ steps.branches-match.outputs.identical != '1' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.normalize-branches.outputs.push-branch }}
@@ -99,7 +98,6 @@ jobs:
           persist-credentials: false
 
       - name: Fetch and prepare Target Branch (${{ steps.normalize-branches.outputs.target-branch }})
-        if: ${{ steps.branches-match.outputs.identical != '1' }}
         run: |
           set -e
           git fetch origin ${{ inputs.commit-id || steps.normalize-branches.outputs.target-branch }}
