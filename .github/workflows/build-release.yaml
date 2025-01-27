@@ -12,7 +12,7 @@ on:
         default: false
         type: boolean
       dry-run:
-        description: 'Set to true to simulate the commit without pushing changes.'
+        description: 'Dry Run: Set to true to simulate the merge without committing or pushing changes.'
         default: false
         type: boolean
 
