@@ -15,6 +15,11 @@ on:
         description: 'Dry Run: Set to true to simulate the merge without committing or pushing changes.'
         default: false
         type: boolean
+      fast-forward:
+        description: 'Allow fast-forward merge'
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   update-packagejson:
@@ -39,6 +44,7 @@ jobs:
       push-branch: ${{ github.event.repository.default_branch }}
       commit-id: ${{ needs.update-packagejson.outputs.sha }}
       dry-run: ${{ inputs.dry-run }}
+      fast-forward: ${{ inputs.fast-forward }}
 
   release-notes:
     needs: [update-packagejson, merge-and-push]
