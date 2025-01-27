@@ -131,34 +131,21 @@ jobs:
           echo "End: ${{ steps.determine-range.outputs.to_commit }}"
           echo "Filter conditions: $FILTER_CONDITION"
 
-          # GitHub Actionsのリポジトリが正しい状態か確認する
-          echo "Checking current Git branch and logs..."
-          git branch
-          git log --oneline | head -10
-
-          # 動的にFILTER_CONDITIONを配列化
           echo "Splitting FILTER_CONDITION into array..."
           IFS='|' read -r -a filter_conditions <<< "$FILTER_CONDITION"
           echo "Conditions: ${filter_conditions[@]}"
 
-          # 並べ替えられた結果を格納する変数
           sorted_notes=""
-
-          # 指定したコミット範囲内のコミットを確認
-          echo "Commits in range:"
-          git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} --oneline
 
           for condition in "${filter_conditions[@]}"; do
             echo "Processing commits for condition: $condition"
 
-            # 各条件でコミットメッセージを抽出
             filtered_notes=$(
               git log ${{ steps.determine-range.outputs.from_commit }}..${{ steps.determine-range.outputs.to_commit }} \
               --pretty=format:"%s" \
               | grep -iE "^\s*($condition)(:|\s)" || echo ""
             )
 
-            # 結果が空でない場合のみ連結
             if [ ! -z "$filtered_notes" ]; then
               echo "Found commits for condition: $condition"
               echo "$filtered_notes"
@@ -168,10 +155,8 @@ jobs:
             fi
           done
 
-          # 空行を除去
           sorted_notes=$(echo "$sorted_notes" | sed '/^$/d')
 
-          # レポート
           length=$(echo "$sorted_notes" | wc -l)
           echo "::notice::Release Notes: $length items"
 
@@ -179,7 +164,6 @@ jobs:
           echo "$sorted_notes"
           echo "::endgroup::"
 
-          # GitHub Actions の出力にノートを保存
           {
             echo "notes<<EOF"
             echo "$sorted_notes"
