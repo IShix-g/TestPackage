@@ -22,8 +22,8 @@ jobs:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
 
-  test-clean-packagejson-branch:
-    uses: ./.github/workflows/test-clean-packagejson-branch.yaml
+  test-clean-branch:
+    uses: ./.github/workflows/test-clean-branch.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}

@@ -34,7 +34,7 @@ jobs:
       derive-from-tag: ${{ inputs.derive-from-tag }}
 
   print:
-    needs: [ release-notes ]
+    needs: [release-notes]
     runs-on: ubuntu-22.04
     steps:
       - name: Echo release notes

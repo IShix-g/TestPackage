@@ -94,6 +94,6 @@ jobs:
   cleanup:
     if: ${{ !inputs.dry-run && needs.update-packagejson.outputs.changed == '1' }}
     needs: [ update-packagejson ]
-    uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
+    uses: ./.github/workflows/reusable-clean-branch.yaml
     with:
       branch:  ${{ github.ref }}

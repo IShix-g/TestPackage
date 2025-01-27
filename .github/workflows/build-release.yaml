@@ -58,10 +58,10 @@ jobs:
       tag: ${{ inputs.tag }}
       release-note: ${{ needs.release-notes.outputs.notes }}
 
-  clean-packagejson-branch:
+  clean-branch:
     needs: [update-packagejson]
     if: ${{ inputs.clean-branch && needs.update-packagejson.outputs.changed == '1' }}
-    uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
+    uses: ./.github/workflows/reusable-clean-branch.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}

@@ -84,9 +84,9 @@ jobs:
         run: |
           git push origin "${{ needs.set-branch.outputs.branch }}"
 
-  clean-packagejson-branch:
+  clean-branch:
     needs: [set-branch, create-branch]
-    uses: ./.github/workflows/reusable-clean-packagejson-branch.yaml
+    uses: ./.github/workflows/reusable-clean-branch.yaml
     secrets:
       BOT_APP_ID: ${{ secrets.BOT_APP_ID }}
       BOT_PRIVATE_KEY: ${{ secrets.BOT_PRIVATE_KEY }}
@@ -94,7 +94,7 @@ jobs:
       branch: ${{ needs.set-branch.outputs.branch }}
 
   check-branch-existence:
-    needs: [set-branch, create-branch, clean-packagejson-branch]
+    needs: [set-branch, create-branch, clean-branch]
     if: ${{ needs.clean-packagejson-branch.outputs.branch-deleted == '1' }}
     runs-on: ubuntu-24.04
     steps:
