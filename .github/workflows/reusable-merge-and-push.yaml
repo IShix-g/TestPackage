@@ -22,11 +22,11 @@ on:
         required: false
         type: boolean
         default: false
-      allow-fast-forward:
-        description: 'Allow fast-forward merge (true or false)'
+      fast-forward:
+        description: 'Allow fast-forward merge'
         type: boolean
         required: false
-        default: true
+        default: false
     secrets:
       BOT_APP_ID:
         required: false
@@ -43,6 +43,7 @@ on:
 jobs:
   merge-and-push:
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     outputs:
       sha: ${{ steps.set-sha.outputs.sha }}
     steps:
@@ -94,8 +95,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.normalize-branches.outputs.push-branch }}
-          persist-credentials: false
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Fetch and prepare Target Branch (${{ steps.normalize-branches.outputs.target-branch }})
         if: ${{ steps.branches-match.outputs.identical != '1' }}
@@ -109,8 +110,15 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          echo "::notice::Dry-run mode is enabled. No merge will be performed."
-          git merge --no-commit --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }}
+          echo "::notice::Dry-run mode is enabled. Simulating merge..."
+          git merge --no-commit --no-ff origin/${{ steps.normalize-branches.outputs.target-branch }} > dry-run-log.txt 2>&1
+
+      - name: Save Dry-Run Log
+        if: ${{ inputs.dry-run }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-log
+          path: dry-run-log.txt
 
       - name: Merge Target Branch (${{ steps.normalize-branches.outputs.target-branch }}) to Push Branch (${{ steps.normalize-branches.outputs.push-branch }})
         id: merge-branch
@@ -127,12 +135,21 @@ jobs:
           if git log ${current_branch}..${merge_target} --oneline | grep -q .; then
             echo "Changes detected. Proceeding with merge..."
 
-            if [ "${{ inputs.allow-fast-forward }}" == "true" ]; then
-              echo "::notice::Allowing Fast-Forward merge..."
-              git merge --ff-only $merge_target && {
-                echo "::notice::Fast-Forward merge completed successfully."
-                exit 0
-              } || echo "::notice::Fast-Forward not possible, falling back to regular merge."
+            if ! git merge --no-commit --no-ff --dry-run $merge_target; then
+              echo "::error::Merge conflict detected. Please resolve conflicts manually."
+              exit 1
+            fi
+
+            if ! git merge --no-commit --no-ff --dry-run $merge_target; then
+              echo "::error::Merge conflict detected. Retrieving conflict details..."
+
+              echo "Conflicting files:"
+              git diff --name-only --diff-filter=U
+
+              echo "Conflict details:"
+              git diff --diff-filter=U
+
+              exit 1
             fi
 
             git merge --no-commit --no-ff $merge_target || {
