@@ -24,6 +24,12 @@ jobs:
           ref: ${{ github.ref }}
           persist-credentials: true
 
+      - name: Debug - Show current commit
+        run: |
+          echo "Current Branch/Ref: ${{ github.ref }}"
+          echo "Target Commit SHA: $(git rev-parse HEAD)"
+          git show --summary
+
       - name: Update v1 tag
         run: |
           git config --global user.name 'github-actions[bot]'
