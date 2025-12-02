@@ -31,4 +31,4 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
           git tag -f v1 ${{ github.ref_name }}
-          git push origin v1 --force
+          git push https://x-access-token:${{ env.GIT_TOKEN }}@github.com/${{ github.repository }}.git v1 --force
