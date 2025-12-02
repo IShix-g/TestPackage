@@ -29,4 +29,4 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
           git tag -f v1
-          git push origin v1 --tags
+          git push -f --tags
