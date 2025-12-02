@@ -24,11 +24,9 @@ jobs:
           fetch-depth: 0
 
       - name: Update v1 tag
-        env:
-          GIT_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git tag -f v1 ${{ github.ref_name }}
-          git push https://x-access-token:${{ env.GIT_TOKEN }}@github.com/${{ github.repository }}.git v1 --force
+          git tag -f v1
+          git push origin v1 --tags
