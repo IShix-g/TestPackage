@@ -1,7 +1,7 @@
 name: Update Major Tag (v1)
 
 on:
-  workflow_call:
+  workflow_dispatch:
 
 jobs:
   update-major-tag:
