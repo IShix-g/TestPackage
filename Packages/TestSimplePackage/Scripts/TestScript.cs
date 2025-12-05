@@ -7,6 +7,7 @@ namespace TestSimplePackage.Scripts
     {
         public string Message => "Hello World! from Test simple package";
         public string Message2 => "Hello World! 2 from Test simple package";
+        public string Message3 => "Hello World! 2 from Test simple package";
         
         public void PrintMessage() => Debug.Log(Message);
     }
